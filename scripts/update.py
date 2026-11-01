@@ -3,6 +3,7 @@
 import json, sys, os, datetime, urllib.request
 sys.path.insert(0, os.path.dirname(__file__))
 from parse_xlsx import parse
+import difflib, collections
 
 FILE_ID = '15gLO2V6V3jxHgYROBl3S_fxmZk7YYMOV'
 URLS = [
@@ -32,6 +33,19 @@ def download():
     sys.exit('Не удалось скачать таблицу. Загрузи её вручную в репозиторий как rasp.xlsx')
 
 
+def fix_typos(groups):
+    """Редкие написания с опечатками заменяем на частое правильное (Неарология -> Неврология)."""
+    cnt = collections.Counter(l['s'] for g in groups.values() for v in g.values() for l in v)
+    common = [s for s, n in cnt.items() if n >= 8]
+    for g in groups.values():
+        for v in g.values():
+            for l in v:
+                if cnt[l['s']] < 4 and len(l['s']) > 5:
+                    m = difflib.get_close_matches(l['s'], common, n=1, cutoff=0.82)
+                    if m:
+                        l['s'] = m[0]
+
+
 def main():
     src = sys.argv[1] if len(sys.argv) > 1 else download()
     new = parse(src)
@@ -42,7 +56,8 @@ def main():
     groups = old.get('groups', {})
     for g, days in new.items():
         groups.setdefault(g, {}).update(days)
-    if groups == old.get('groups') and old.get('source') == 'xlsx':
+    fix_typos(groups)
+    if groups == old.get('groups') and old.get('source') == 'xlsx' and len(sys.argv) == 1:
         print('без изменений')
         return
     now = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=3)

@@ -1,5 +1,5 @@
 // Пульс: офлайн-режим. Расписание берём из сети, если сети нет — из кэша.
-const CACHE = 'puls-v1';
+const CACHE = 'puls-v2';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'data.json'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => {

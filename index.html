@@ -99,6 +99,8 @@ button{font:inherit}
 .tag.sub{background:rgba(255,192,97,.1);border-color:rgba(255,192,97,.4);color:#ffd99a}
 .tag.last{background:rgba(255,92,170,.14);border-color:rgba(255,120,190,.45);color:#ffc2e2}
 .tag.note{background:rgba(255,255,255,.06);border-color:var(--line);color:var(--mut)}
+.hint2{margin-top:8px;font-size:12.5px;font-weight:700;color:#ffd99a}
+.disc{margin-top:12px;font-size:12px;color:var(--mut);font-weight:600;line-height:1.45;text-align:center}
 .info{margin-top:12px;padding:11px 13px;border-radius:14px;background:rgba(255,192,97,.07);border:1px solid rgba(255,192,97,.28);color:#ffe2b8;font-size:12.5px;line-height:1.45;font-weight:600}
 .empty{text-align:center;padding:28px 12px;border:1px dashed var(--line2);border-radius:20px;color:#d3cdf5;font-size:14px;line-height:1.45}
 .empty .em{font-size:40px;margin-bottom:8px}
@@ -267,7 +269,7 @@ const fromIso=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d
 const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
 const mondayOf=d=>{const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());return addD(x,-((x.getDay()+6)%7))};
 const toMin=s=>{const [h,m]=s.split(":").map(Number);return h*60+m};
-const span=l=>l.a===0?["08:00","08:30"]:[BELLS[l.a-1][1],BELLS[(l.b||l.a)-1][2]];
+const span=l=>l.a===0?["08:00","08:30"]:[l.start||BELLS[l.a-1][1],BELLS[(l.b||l.a)-1][2]];
 const plural=(n,a,b,c)=>{n=Math.abs(n)%100;const k=n%10;if(n>10&&n<20)return c;if(k>1&&k<5)return b;if(k===1)return a;return c};
 const cap=s=>s[0].toUpperCase()+s.slice(1);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -296,7 +298,7 @@ function tagsHTML(l){
   if(l.r) t.push(`<span class="tag room">📍 ${/^\d/.test(l.r)?"каб. ":""}${esc(l.r)}</span>`);
   if(l.last) t.push(`<span class="tag last">🏁 последнее занятие</span>`);
   if(l.note) t.push(`<span class="tag note">${esc(l.note)}</span>`);
-  return t.length?`<div class="tags">${t.join("")}</div>`:"";
+  return (t.length?`<div class="tags">${t.join("")}</div>`:"")+(l.hint?`<div class="hint2">💬 ${esc(l.hint)}</div>`:"");
 }
 function slots(list){ // объединяем записи одной пары
   const m=new Map(); for(const l of list){const k=l.a; if(!m.has(k)) m.set(k,[]); m.get(k).push(l)}
@@ -317,7 +319,8 @@ function listHTML(list,isToday){
   }).join("");
 }
 function infoHTML(list){
-  return list&&list.some(l=>l.g) ? `<div class="info">ℹ️ Пометки «1 подгр.» и «2 подгр.» стоят так в таблице колледжа. Если не уверен, к тебе это или нет, уточни у старосты.</div>` : "";
+  const sub = list&&list.some(l=>l.g) ? `<div class="info">ℹ️ Пометки «1 подгр.» и «2 подгр.» стоят так в таблице колледжа. Если не уверен, к тебе это или нет, уточни у старосты.</div>` : "";
+  return sub + (list&&list.length ? `<div class="disc">Расписание взято из таблицы колледжа. Изменения бывают в последний момент: уточняйте в чате группы</div>` : "");
 }
 function emptyHTML(d){
   const h=holiday(d), known=allDates(), k=iso(d);
