@@ -339,7 +339,7 @@ function listHTML(list,isToday){
 }
 function infoHTML(list){
   const sub = list&&list.some(l=>l.g) ? `<div class="info">ℹ️ Пометки «1 подгр.» и «2 подгр.» стоят так в таблице колледжа. Если не уверен, к тебе это или нет, уточни у старосты.</div>` : "";
-  return sub + (list&&list.length ? `<div class="disc">Расписание взято из таблицы колледжа. Изменения бывают в последний момент: уточняйте в чате группы</div>` : "");
+  return sub + (list&&list.length ? `<div class="disc">Расписание взято из таблицы колледжа и проверяется каждый час${DATA&&DATA.updated?` · обновлено ${DATA.updated.slice(8,10)}.${DATA.updated.slice(5,7)} в ${DATA.updated.slice(11)}`:""}. Изменения бывают в последний момент: уточняйте в чате группы</div>` : "");
 }
 function emptyHTML(d){
   const h=holiday(d), known=allDates(), k=iso(d);
@@ -447,10 +447,10 @@ const IC={
   plus:`<span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg></span>`
 };
 const STEPS={
-  and:[`Открой сайт в <b>Chrome</b> или <b>Яндекс Браузере</b>`,`Нажми ${IC.dots} справа вверху (в Яндексе: ${IC.dots} внизу)`,`Выбери <b>«Добавить на главный экран»</b> или <b>«Установить приложение»</b> (в Яндексе: <b>«Добавить ярлык»</b>)`,`Готово: на рабочем столе появится иконка <b>Пульс</b> 💜`],
-  ios:[`Открой сайт в <b>Safari</b>`,`Нажми кнопку «Поделиться» ${IC.share} внизу экрана`,`Пролистай вниз и выбери <b>«На экран „Домой“»</b> ${IC.plus}, потом <b>«Добавить»</b>`,`Готово: на рабочем столе появится иконка <b>Пульс</b> 💜`]
+  and:[`Сначала открой сайт в браузере: <b>Chrome</b> или <b>Яндекс Браузер</b> (не внутри Telegram)`,`Нажми ${IC.dots} справа вверху (в Яндексе: ${IC.dots} внизу)`,`Выбери <b>«Добавить на главный экран»</b> или <b>«Установить приложение»</b> (в Яндексе: <b>«Добавить ярлык»</b>)`,`Готово: на рабочем столе появится иконка <b>Пульс</b> 💜`],
+  ios:[`Сначала открой сайт в <b>Safari</b> (не внутри Telegram)`,`Нажми кнопку «Поделиться» ${IC.share} внизу экрана`,`Пролистай вниз и выбери <b>«На экран „Домой“»</b> ${IC.plus}, потом <b>«Добавить»</b>`,`Готово: на рабочем столе появится иконка <b>Пульс</b> 💜`]
 };
-const NOTES={and:"Если открыл ссылку в Telegram или ВК, сначала нажми ⋮ → «Открыть в браузере»",ios:"Если открыл ссылку в Telegram или ВК, сначала нажми «…» или значок компаса → «Открыть в Safari»"};
+const NOTES={and:"Если открыл ссылку в Telegram или ВК, сначала нажми ⋮ → «Открыть в браузере». Нажимаешь «Добавить» и ничего не происходит (Xiaomi, Redmi, POCO)? Зажми иконку браузера → «О приложении» → «Другие разрешения» → «Ярлыки на рабочем столе» → Разрешить",ios:"Если открыл ссылку в Telegram или ВК, сначала нажми «…» или значок компаса → «Открыть в Safari»"};
 const ua=navigator.userAgent;
 const isIOS=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 const inApp=/Telegram|Instagram|FBAN|FBAV|VKAndroidApp|vkclient|com\.vk|; wv\)/i.test(ua);
@@ -505,14 +505,21 @@ function renderAll(){
   document.getElementById("foot").innerHTML=`Расписание обновлено: ${DATA.updated||"—"}<br><a href="https://pskms.narod.ru/rasp.htm" target="_blank" rel="noopener">Исходная таблица колледжа</a>`;
 }
 async function boot(){
-  if(!DATA){ try{ DATA=await (await fetch("data.json",{cache:"no-cache"})).json() }catch(e){ DATA={groups:{}} } }
+  if(!DATA){ try{ DATA=await (await fetch("data.json?t="+Date.now(),{cache:"no-store"})).json() }catch(e){ DATA={groups:{}} } }
   if(group&&!DATA.groups[group]) group=null;
   initWeek(); renderAll();
   if(!group) openGroups();
 }
 boot();
 setInterval(()=>{if(DATA){renderToday();renderBells()}},30000);
-if("serviceWorker" in navigator && location.protocol==="https:" && !window.PULS_DATA){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+if("serviceWorker" in navigator && location.protocol==="https:" && !window.PULS_DATA){
+  const hadSW=!!navigator.serviceWorker.controller; let reloaded=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(hadSW&&!reloaded){reloaded=true;location.reload()}});
+  navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>r.update()).catch(()=>{});
+}
+// свежие пары при возвращении в приложение
+document.addEventListener("visibilitychange",async()=>{ if(document.visibilityState!=="visible"||window.PULS_DATA) return;
+  try{const d=await (await fetch("data.json?t="+Date.now(),{cache:"no-store"})).json(); if(d&&d.updated!==DATA.updated){DATA=d;renderAll()}}catch(e){} });
 </script>
 </body>
 </html>
