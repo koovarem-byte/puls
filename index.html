@@ -82,12 +82,12 @@ button{font:inherit}
 .day.off b{color:var(--dim)}
 .day.hol b{color:#ff9bd2}
 .lessons{display:flex;flex-direction:column;gap:10px}
-.ls{position:relative;display:grid;grid-template-columns:58px 1fr;gap:14px;padding:14px 14px 14px 16px;border-radius:18px;background:rgba(12,9,36,.62);border:1px solid var(--line);overflow:hidden}
+.ls{position:relative;display:grid;grid-template-columns:62px 1fr;gap:12px;padding:14px 14px 14px 16px;border-radius:18px;background:rgba(12,9,36,.62);border:1px solid var(--line);overflow:hidden}
 .ls:before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:3px;background:var(--grad)}
 .ls.now{border-color:rgba(61,220,151,.6);box-shadow:0 0 0 1px rgba(61,220,151,.25),0 10px 30px rgba(61,220,151,.12)}
 .ls.now:before{background:var(--ok)}
 .ls.past{opacity:.42}
-.ls.ch{grid-template-columns:58px 1fr;background:rgba(139,92,255,.08)}
+.ls.ch{background:rgba(139,92,255,.08)}
 .ls .n{font-family:Unbounded,sans-serif;font-size:11px;font-weight:700;color:#b9a4ff;letter-spacing:.3px}
 .ls .t{font-size:13px;color:#e4dfff;margin-top:5px;font-weight:800;line-height:1.35}
 .ls .t i{display:block;font-style:normal;color:var(--mut);font-weight:600}
@@ -127,13 +127,22 @@ button{font:inherit}
 .os button.on{background:var(--grad);color:#fff}
 .steps{display:flex;flex-direction:column;gap:10px}
 .step{display:flex;gap:12px;align-items:flex-start;padding:13px 14px;border-radius:16px;background:rgba(12,9,36,.62);border:1px solid var(--line);font-size:14px;line-height:1.45;font-weight:600;color:#e4dfff}
-.step span{flex:none;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:var(--grad);font-weight:800;font-size:13px;color:#fff}
+.step>span{flex:none;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:var(--grad);font-weight:800;font-size:13px;color:#fff}
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 18px;border-radius:15px;background:var(--grad);color:#fff;font-weight:800;font-size:15px;text-decoration:none;border:0;box-shadow:0 8px 26px var(--glow);cursor:pointer;width:100%;margin-bottom:14px}
 .promo{padding:16px;margin-bottom:14px}
 .promo .ad-tag{display:inline-block;font-size:10px;letter-spacing:1px;color:var(--mut);text-transform:uppercase;font-weight:800;padding:3px 8px;border-radius:7px;border:1px solid var(--line2);margin-bottom:10px}
 .promo b{display:block;font-family:Unbounded,sans-serif;font-size:15px;font-weight:700;line-height:1.3}
 .promo p{color:#d3cdf5;font-size:13px;margin-top:6px;line-height:1.45}
 .promo a{display:inline-block;margin-top:12px;padding:10px 15px;border-radius:12px;background:var(--grad);color:#fff;font-weight:800;font-size:13.5px;text-decoration:none}
+.qr{width:190px;height:190px;margin:4px auto 14px;padding:12px;background:#fff;border-radius:20px;box-shadow:0 10px 34px var(--glow)}
+.qr img,.qr canvas{width:100%!important;height:100%!important}
+.link{text-align:center;font-family:Unbounded,sans-serif;font-weight:700;font-size:14px;margin-bottom:12px;word-break:break-all}
+.sbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.sbtns .btn{margin:0;font-size:14px;padding:12px}
+.btn.ghost{background:rgba(255,255,255,.06);box-shadow:none;border:1px solid var(--line2)}
+.env{margin-bottom:14px;padding:14px;border-radius:18px;font-size:14px;line-height:1.5;font-weight:700}
+.env.warn{background:rgba(255,192,97,.1);border:1px solid rgba(255,192,97,.45);color:#ffe2b8}
+.env.ok{background:rgba(61,220,151,.1);border:1px solid rgba(61,220,151,.45);color:#c8f7e1}
+.ic{display:inline-flex;vertical-align:-5px;margin:0 2px;padding:2px 5px;border-radius:7px;background:rgba(255,255,255,.1)}
 .foot{text-align:center;color:var(--dim);font-size:11.5px;padding:6px 20px 22px;line-height:1.55;font-weight:600}
 .foot a{color:var(--mut)}
 .tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom));width:min(528px,calc(100% - 24px));
@@ -233,10 +242,20 @@ button{font:inherit}
       <p>Пары своей группы в один тап.<br>Без таблицы на 600 строк и листания с 1 сентября.</p>
       <div class="rating"><div><b>1 тап</b>до пар</div><div><b>0 ₽</b>навсегда</div><div><b>23</b>группы</div></div>
     </div>
-    <button class="btn" id="installNow" style="display:none">📲 Установить Пульс</button>
+    <div id="envBox"></div>
+    <button class="btn" id="installNow" style="display:none">📲 Установить в один тап</button>
     <div class="sec glass">
+      <div class="sec-h"><h2><span class="ico">📲</span>Как поставить на экран</h2></div>
       <div class="os"><button class="on" data-os="and">Android</button><button data-os="ios">iPhone</button></div>
       <div class="steps" id="steps"></div>
+      <p class="disc" id="stepsNote"></p>
+    </div>
+    <div class="sec glass share">
+      <div class="sec-h"><h2><span class="ico">💜</span>Поделиться с группой</h2></div>
+      <div class="qr" id="qr"></div>
+      <div class="link" id="siteLink"></div>
+      <div class="sbtns"><button class="btn" id="shareBtn">Отправить ссылку</button><button class="btn ghost" id="copyBtn">Скопировать</button></div>
+      <p class="disc" id="qrHint">Покажи QR-код другу: он наводит камеру и сразу попадает в Пульс</p>
     </div>
     <p class="foot" id="foot"></p>
   </section>
@@ -306,7 +325,7 @@ function slots(list){ // объединяем записи одной пары
 }
 function slotHTML(items,state){
   const l=items[0], [a,b]=span(l);
-  const label=l.a===0?"классный час":l.a+" пара";
+  const label=l.a===0?"кл. час":l.a+" пара";
   return `<div class="ls ${l.a===0?"ch":""} ${state||""}">
     <div><div class="n">${label}</div><div class="t">${a}<i>${b}</i></div></div>
     <div>${items.map((x,i)=>`<div class="${i?"alt":""}"><div class="s">${esc(x.s)}</div>${tagsHTML(x)}</div>`).join("")}</div></div>`;
@@ -421,19 +440,52 @@ function renderBells(){
 }
 
 /* ===== Установка ===== */
-const STEPS={and:["Открой этот сайт в Chrome или Яндекс Браузере","Нажми меню ⋮ в правом верхнем углу","Выбери «Добавить на главный экран» или «Установить приложение»","Готово: на экране появится иконка Пульс 💜"],
-  ios:["Открой этот сайт в Safari","Нажми «Поделиться» (квадрат со стрелкой)","Выбери «На экран „Домой“» → «Добавить»","Готово: на экране появится иконка Пульс 💜"]};
-const isIOS=/iphone|ipad/i.test(navigator.userAgent);
-function renderSteps(os){document.querySelectorAll(".os button").forEach(x=>x.classList.toggle("on",x.dataset.os===os));document.getElementById("steps").innerHTML=STEPS[os].map((s,i)=>`<div class="step"><span>${i+1}</span>${s}</div>`).join("")}
+const SITE_URL="https://koovarem-byte.github.io/puls/";
+const IC={
+  dots:`<span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></span>`,
+  share:`<span class="ic"><svg width="16" height="18" viewBox="0 0 24 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 8l5-5 5 5"/><path d="M5 12v10h14V12"/></svg></span>`,
+  plus:`<span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg></span>`
+};
+const STEPS={
+  and:[`Открой сайт в <b>Chrome</b> или <b>Яндекс Браузере</b>`,`Нажми ${IC.dots} справа вверху (в Яндексе: ${IC.dots} внизу)`,`Выбери <b>«Добавить на главный экран»</b> или <b>«Установить приложение»</b> (в Яндексе: <b>«Добавить ярлык»</b>)`,`Готово: на рабочем столе появится иконка <b>Пульс</b> 💜`],
+  ios:[`Открой сайт в <b>Safari</b>`,`Нажми кнопку «Поделиться» ${IC.share} внизу экрана`,`Пролистай вниз и выбери <b>«На экран „Домой“»</b> ${IC.plus}, потом <b>«Добавить»</b>`,`Готово: на рабочем столе появится иконка <b>Пульс</b> 💜`]
+};
+const NOTES={and:"Если открыл ссылку в Telegram или ВК, сначала нажми ⋮ → «Открыть в браузере»",ios:"Если открыл ссылку в Telegram или ВК, сначала нажми «…» или значок компаса → «Открыть в Safari»"};
+const ua=navigator.userAgent;
+const isIOS=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const inApp=/Telegram|Instagram|FBAN|FBAV|VKAndroidApp|vkclient|com\.vk|; wv\)/i.test(ua);
+const standalone=(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;
+function renderSteps(os){document.querySelectorAll(".os button").forEach(x=>x.classList.toggle("on",x.dataset.os===os));
+  document.getElementById("steps").innerHTML=STEPS[os].map((s,i)=>`<div class="step"><span>${i+1}</span><div>${s}</div></div>`).join("");
+  document.getElementById("stepsNote").textContent=NOTES[os]}
 document.querySelectorAll(".os button").forEach(b=>b.onclick=()=>renderSteps(b.dataset.os));
 renderSteps(isIOS?"ios":"and");
+const env=document.getElementById("envBox");
+if(standalone){env.innerHTML=`<div class="env ok">✅ Пульс уже стоит у тебя на экране. Можно делиться ссылкой с группой</div>`;document.getElementById("getStrip").style.display="none"}
+else if(inApp) env.innerHTML=`<div class="env warn">⚠️ Ты открыл Пульс внутри приложения (Telegram, ВК или Instagram). Отсюда поставить на экран нельзя.<br>Нажми ${isIOS?"«…» или значок компаса → «Открыть в Safari»":IC.dots+" → «Открыть в браузере»"}, а дальше по шагам ниже</div>`;
 let deferred=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;document.getElementById("installNow").style.display="flex"});
-document.getElementById("installNow").onclick=async()=>{if(!deferred)return;deferred.prompt();try{await deferred.userChoice}catch(e){};deferred=null;document.getElementById("installNow").style.display="none"};
-if(window.matchMedia&&matchMedia("(display-mode: standalone)").matches) document.getElementById("getStrip").style.display="none";
+window.addEventListener("appinstalled",()=>{document.getElementById("installNow").style.display="none";env.innerHTML=`<div class="env ok">✅ Готово! Пульс появился на экране</div>`});
+async function doInstall(){ if(deferred){deferred.prompt();try{await deferred.userChoice}catch(e){};deferred=null;document.getElementById("installNow").style.display="none"} else go("app") }
+document.getElementById("installNow").onclick=doInstall;
+document.getElementById("getStrip").onclick=doInstall;
+document.getElementById("getStrip").removeAttribute("data-go");
+document.getElementById("siteLink").textContent=SITE_URL.replace(/^https:\/\//,"").replace(/\/$/,"");
+const shareText="Пульс — расписание медколледжа: пары своей группы в один тап";
+document.getElementById("shareBtn").onclick=async()=>{
+  if(navigator.share){try{await navigator.share({title:"Пульс",text:shareText,url:SITE_URL});return}catch(e){if(e&&e.name==="AbortError")return}}
+  location.href="https://t.me/share/url?url="+encodeURIComponent(SITE_URL)+"&text="+encodeURIComponent(shareText);
+};
+document.getElementById("copyBtn").onclick=async e=>{const b=e.currentTarget;try{await navigator.clipboard.writeText(SITE_URL);b.textContent="Скопировано ✓"}catch(err){b.textContent="Не вышло: выдели ссылку выше"};setTimeout(()=>b.textContent="Скопировать",2000)};
+let qrDone=false;
+function makeQR(){ if(qrDone) return; const box=document.getElementById("qr");
+  const draw=()=>{try{new QRCode(box,{text:SITE_URL,width:400,height:400,colorDark:"#1a1050",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});qrDone=true}catch(e){box.style.display="none";document.getElementById("qrHint").style.display="none"}};
+  if(window.QRCode) return draw();
+  const s=document.createElement("script"); s.src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"; s.onload=draw; s.onerror=()=>{box.style.display="none";document.getElementById("qrHint").style.display="none"}; document.head.appendChild(s);
+}
 
 /* ===== Навигация и группы ===== */
-function go(v){document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.v===v));document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));window.scrollTo({top:0,behavior:"smooth"})}
+function go(v){if(v==="app")makeQR();document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.v===v));document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));window.scrollTo({top:0,behavior:"smooth"})}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>go(b.dataset.v));
 document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
 document.getElementById("gSheet").onclick=e=>{if(e.target.id==="gSheet"&&group)e.target.classList.remove("on")};
