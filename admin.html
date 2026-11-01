@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#07051a">
+<title>Пульс · вопросы</title>
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Manrope,system-ui,sans-serif;color:#f1efff;min-height:100vh;padding:18px 16px 40px;
+  background:radial-gradient(800px 480px at 100% -5%,rgba(139,92,255,.3),transparent 60%),#07051a}
+.wrap{max-width:620px;margin:0 auto}
+h1{font-family:Unbounded,sans-serif;font-size:22px;margin-bottom:4px;background:linear-gradient(120deg,#3d6bff,#8b5cff,#c45cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:#a59fd0;font-size:13px;font-weight:700;margin-bottom:16px}
+input,textarea{width:100%;font:inherit;font-size:15px;color:#f1efff;background:rgba(14,10,40,.75);border:1px solid rgba(160,140,255,.38);border-radius:14px;padding:12px 14px;outline:none}
+textarea{min-height:80px;resize:vertical;margin:10px 0 8px}
+button{font:inherit;font-weight:800;border:0;border-radius:12px;padding:11px 16px;cursor:pointer;color:#fff;background:linear-gradient(120deg,#3d6bff,#8b5cff,#c45cff)}
+button.ghost{background:rgba(255,255,255,.07);border:1px solid rgba(160,140,255,.35);color:#d3cdf5}
+.row{display:flex;gap:8px;margin-bottom:14px}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tabs button{background:rgba(255,255,255,.06);border:1px solid rgba(160,140,255,.3);color:#d3cdf5;padding:9px 13px;font-size:13px}
+.tabs button.on{background:linear-gradient(120deg,#3d6bff,#8b5cff,#c45cff);color:#fff}
+.card{padding:14px;border-radius:18px;background:linear-gradient(160deg,rgba(46,40,128,.5),rgba(32,30,92,.42));border:1px solid rgba(150,140,255,.2);margin-bottom:10px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:800;color:#a59fd0;margin-bottom:8px}
+.meta span{padding:3px 8px;border-radius:8px;background:rgba(255,255,255,.07)}
+.meta .new{background:#ff5cae;color:#fff}
+.q{font-size:15px;line-height:1.45;white-space:pre-wrap;font-weight:600}
+.btns{display:flex;gap:8px}
+.ok{color:#8ff0c4;font-size:12.5px;font-weight:700;margin-top:6px;min-height:1px}
+.empty{text-align:center;color:#a59fd0;padding:30px 0;font-weight:700}
+.err{color:#ffb4b4;font-weight:700;margin-bottom:12px}
+</style>
+</head>
+<body><div class="wrap">
+<h1>Пульс · вопросы</h1>
+<p class="sub">Вопросы с сайта. Твой ответ человек увидит в разделе «Мои вопросы».</p>
+
+<div id="login">
+  <div class="row"><input id="key" type="password" placeholder="Ключ админа"><button id="enter">Войти</button></div>
+  <div id="loginErr" class="err"></div>
+</div>
+
+<div id="app" style="display:none">
+  <div class="tabs"><button class="on" data-f="new">Без ответа <span id="cNew"></span></button><button data-f="done">Отвеченные</button><button class="ghost" id="refresh">↻</button><button class="ghost" id="logout">Выйти</button></div>
+  <div id="list"></div>
+</div>
+</div>
+<script>
+const API="https://ep-still-mode-b90ygqum.apirest.c-7.eu-central-1.aws.neon.tech/neondb/rest/v1";
+async function rpc(name,body){const r=await fetch(`${API}/rpc/${name}`,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(body)});if(!r.ok)throw new Error(r.status);const t=await r.text();return t?JSON.parse(t):null}
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let KEY="";try{KEY=localStorage.getItem("puls_admin")||""}catch(e){}
+let ROWS=[],F="new";
+const fmt=s=>{const d=new Date(s);return d.toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})};
+async function load(){
+  try{ROWS=await rpc("admin_list",{p_key:KEY})}catch(e){document.getElementById("login").style.display="block";document.getElementById("app").style.display="none";document.getElementById("loginErr").textContent=KEY?"Ключ не подошёл или нет связи":"";return}
+  try{localStorage.setItem("puls_admin",KEY)}catch(e){}
+  document.getElementById("login").style.display="none";document.getElementById("app").style.display="block";render();
+}
+function render(){
+  const n=ROWS.filter(r=>!r.answer).length; document.getElementById("cNew").textContent=n?`(${n})`:"";
+  document.title=n?`(${n}) Пульс · вопросы`:"Пульс · вопросы";
+  const rows=ROWS.filter(r=>F==="new"?!r.answer:!!r.answer);
+  document.getElementById("list").innerHTML=rows.length?rows.map(r=>`<div class="card" data-id="${r.id}">
+    <div class="meta">${r.answer?"":'<span class="new">новый</span>'}<span>${fmt(r.created_at)}</span>${r.grp?`<span>${esc(r.grp)}</span>`:""}${r.contact?`<span>${esc(r.contact)}</span>`:""}</div>
+    <div class="q">${esc(r.body)}</div>
+    <textarea placeholder="Твой ответ…">${esc(r.answer||"")}</textarea>
+    <div class="btns"><button class="send">${r.answer?"Обновить ответ":"Ответить"}</button><button class="ghost hide">Скрыть</button></div>
+    <div class="ok"></div></div>`).join(""):`<div class="empty">${F==="new"?"Новых вопросов нет 🎉":"Пока пусто"}</div>`;
+  document.querySelectorAll(".card").forEach(c=>{
+    const id=c.dataset.id, ok=c.querySelector(".ok");
+    c.querySelector(".send").onclick=async()=>{const a=c.querySelector("textarea").value.trim(); if(!a){ok.textContent="Напиши ответ";return}
+      try{await rpc("admin_answer",{p_key:KEY,p_id:id,p_answer:a});const r=ROWS.find(x=>x.id===id);r.answer=a;ok.textContent="✅ Ответ сохранён";setTimeout(render,800)}catch(e){ok.textContent="Ошибка, попробуй ещё раз"}};
+    c.querySelector(".hide").onclick=async()=>{if(!window.confirm||true){try{await rpc("admin_hide",{p_key:KEY,p_id:id});ROWS=ROWS.filter(x=>x.id!==id);render()}catch(e){ok.textContent="Ошибка"}}};
+  });
+}
+document.getElementById("enter").onclick=()=>{KEY=document.getElementById("key").value.trim();load()};
+document.getElementById("key").onkeydown=e=>{if(e.key==="Enter")document.getElementById("enter").click()};
+document.getElementById("refresh").onclick=load;
+document.getElementById("logout").onclick=()=>{try{localStorage.removeItem("puls_admin")}catch(e){};KEY="";location.reload()};
+document.querySelectorAll(".tabs [data-f]").forEach(b=>b.onclick=()=>{F=b.dataset.f;document.querySelectorAll(".tabs [data-f]").forEach(x=>x.classList.toggle("on",x===b));render()});
+if(KEY) load();
+setInterval(()=>{if(KEY&&document.visibilityState==="visible")load()},60000);
+</script>
+</body>
+</html>
