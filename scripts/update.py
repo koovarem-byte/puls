@@ -25,7 +25,11 @@ def download():
             print('not xlsx from', u)
         except Exception as e:
             print('fail', u, e)
-    sys.exit('Не удалось скачать таблицу')
+    local = os.path.join(ROOT, 'rasp.xlsx')
+    if os.path.exists(local):
+        print('скачать не вышло, беру загруженный вручную rasp.xlsx')
+        return local
+    sys.exit('Не удалось скачать таблицу. Загрузи её вручную в репозиторий как rasp.xlsx')
 
 
 def main():
@@ -41,7 +45,7 @@ def main():
     if groups == old.get('groups') and old.get('source') == 'xlsx':
         print('без изменений')
         return
-    now = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
+    now = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=3)
     json.dump({'updated': now.strftime('%Y-%m-%d %H:%M'), 'source': 'xlsx', 'groups': groups},
               open(DATA, 'w'), ensure_ascii=False, separators=(',', ':'))
     print('обновлено: групп', len(groups))
