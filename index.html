@@ -146,12 +146,27 @@ button{font:inherit}
 .env.warn{background:rgba(255,192,97,.1);border:1px solid rgba(255,192,97,.45);color:#ffe2b8}
 .env.ok{background:rgba(61,220,151,.1);border:1px solid rgba(61,220,151,.45);color:#c8f7e1}
 .ic{display:inline-flex;vertical-align:-5px;margin:0 2px;padding:2px 5px;border-radius:7px;background:rgba(255,255,255,.1)}
+.rsub{color:var(--mut);font-size:13px;font-weight:600;margin:-6px 0 12px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(14,10,40,.6);color:var(--txt);font-weight:800;font-size:13px;cursor:pointer;line-height:1.2}
+.chips button small{display:block;color:var(--mut);font-size:10.5px;font-weight:700}
+.chips button.on{background:var(--grad);border-color:rgba(255,255,255,.35)}
+.chips button.on small{color:#efe8ff}
+.chips button:disabled{opacity:.35}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:8px;margin:6px 0 4px}
+.rgrid div{text-align:center;padding:12px 0;border-radius:13px;font-family:Unbounded,sans-serif;font-weight:700;font-size:15px;background:rgba(61,220,151,.1);border:1px solid rgba(61,220,151,.4);color:#c8f7e1}
+.rhead{display:flex;justify-content:space-between;align-items:baseline;margin:8px 0 6px;font-weight:800}
+.rhead span{color:var(--mut);font-size:12px;font-weight:700}
+.help{display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:14px}
+.help div{flex:1}.help b{font-size:14.5px}.help p{color:var(--mut);font-size:12.5px;font-weight:600;margin-top:3px}
+.go2{background:var(--grad);color:#fff;font-weight:800;font-size:13.5px;padding:10px 14px;border-radius:12px;text-decoration:none;white-space:nowrap}
 .foot{text-align:center;color:var(--dim);font-size:11.5px;padding:6px 20px 22px;line-height:1.55;font-weight:600}
 .foot a{color:var(--mut)}
 .tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom));width:min(528px,calc(100% - 24px));
-  display:grid;grid-template-columns:repeat(4,1fr);padding:6px;border-radius:24px;z-index:20;background:rgba(14,10,40,.85);border:1px solid var(--line2);
+  display:grid;grid-template-columns:repeat(5,1fr);padding:6px;border-radius:24px;z-index:20;background:rgba(14,10,40,.85);border:1px solid var(--line2);
   backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 14px 40px rgba(0,0,0,.55)}
-.tab{background:none;border:0;color:var(--mut);font-size:11px;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border-radius:18px;cursor:pointer}
+.tab{background:none;border:0;color:var(--mut);font-size:10.5px;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border-radius:18px;cursor:pointer}
 .tab.on{color:#fff;background:linear-gradient(120deg,rgba(61,107,255,.5),rgba(139,92,255,.5),rgba(196,92,255,.45));box-shadow:inset 0 0 0 1px rgba(200,180,255,.45)}
 .view{display:none}.view.on{display:block;animation:fade .25s ease}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -217,6 +232,10 @@ button{font:inherit}
       </div></div>
       <a id="adLink" href="#" target="_blank" rel="noopener" style="display:none">Разместить рекламу →</a>
     </div>
+    <div class="help glass" id="helpCard" style="display:none">
+      <div><b>Есть вопрос или нашёл ошибку?</b><p>Напиши в Пульс, ответим. Можно анонимно</p></div>
+      <a class="go2" id="helpLink" href="#" target="_blank" rel="noopener">Написать</a>
+    </div>
   </section>
 
   <section class="view" id="v-week">
@@ -228,6 +247,17 @@ button{font:inherit}
       <div class="days" id="days"></div>
       <div class="lessons" id="weekList"></div>
       <div id="weekInfo"></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-rooms">
+    <div class="sec glass">
+      <div class="sec-h"><h2><span class="ico">🚪</span>Свободные кабинеты</h2></div>
+      <p class="rsub">Где сейчас пусто, чтобы позаниматься</p>
+      <div class="chips" id="rDays"></div>
+      <div class="chips pairs" id="rPairs"></div>
+      <div id="rResult"></div>
+      <div class="info">⚠️ Свободно <b>по расписанию</b>. Кабинет может быть занят отработкой, консультацией или изменением, которого нет в таблице. Возможны расхождения, поэтому проверь на месте.</div>
     </div>
   </section>
 
@@ -269,6 +299,7 @@ button{font:inherit}
 <nav class="tabbar">
   <button class="tab on" data-v="today"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>Сегодня</button>
   <button class="tab" data-v="week"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>Неделя</button>
+  <button class="tab" data-v="rooms"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V5a2 2 0 0 1 2-2h8l4 4v14"/><path d="M2 21h20"/><circle cx="13" cy="13" r="1" fill="currentColor"/></svg>Кабинеты</button>
   <button class="tab" data-v="bells"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg>Звонки</button>
   <button class="tab" data-v="app"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>Скачать</button>
 </nav>
@@ -350,7 +381,7 @@ function listHTML(list,isToday){
 }
 function infoHTML(list){
   const sub = list&&list.some(l=>l.g) ? `<div class="info">ℹ️ Пометки «1 подгр.» и «2 подгр.» стоят так в таблице колледжа. Если не уверен, к тебе это или нет, уточни у старосты.</div>` : "";
-  return sub + (list&&list.length ? `<div class="disc">Расписание взято из таблицы колледжа и проверяется каждый час${DATA&&DATA.updated?` · обновлено ${DATA.updated.slice(8,10)}.${DATA.updated.slice(5,7)} в ${DATA.updated.slice(11)}`:""}. Изменения бывают в последний момент: уточняйте в чате группы</div>` : "");
+  return sub + (list&&list.length ? `<div class="disc">Расписание автоматически берётся из таблицы колледжа и проверяется каждый час${DATA&&DATA.updated?` · обновлено ${DATA.updated.slice(8,10)}.${DATA.updated.slice(5,7)} в ${DATA.updated.slice(11)}`:""}. Возможны расхождения и изменения в последний момент, поэтому сверяйся с чатом группы</div>` : "");
 }
 function emptyHTML(d){
   const h=holiday(d), known=allDates(), k=iso(d);
@@ -436,6 +467,34 @@ function renderWeek(){
 document.getElementById("wPrev").onclick=()=>{wStart=addD(wStart,-7);selDay=null;renderWeek()};
 document.getElementById("wNext").onclick=()=>{wStart=addD(wStart,7);selDay=null;renderWeek()};
 
+/* ===== Свободные кабинеты ===== */
+const HELP_BOT = ""; // username бота для вопросов, без @
+let ROOMS=null, rDay=null, rPair=null;
+const isRoom=r=>/^\d{1,3}[а-я]?$/.test(r||"");
+function allRooms(){
+  if(ROOMS) return ROOMS; const c={};
+  for(const g in DATA.groups) for(const d in DATA.groups[g]) for(const l of DATA.groups[g][d]) if(isRoom(l.r)) c[l.r]=(c[l.r]||0)+1;
+  ROOMS=Object.keys(c).filter(r=>c[r]>=5).sort((a,b)=>parseInt(a)-parseInt(b)||a.localeCompare(b)); return ROOMS;
+}
+function busy(date,pair){ const s=new Set();
+  for(const g in DATA.groups){const v=DATA.groups[g][date]; if(Array.isArray(v)) for(const l of v) if(l.a===pair&&isRoom(l.r)) s.add(l.r)} return s }
+function hasDay(date){ for(const g in DATA.groups){const v=DATA.groups[g][date]; if(Array.isArray(v)&&v.length) return true} return false }
+function renderRooms(){
+  const d=now(), m=d.getHours()*60+d.getMinutes(); const days=[];
+  for(let i=0;days.length<6&&i<14;i++){const x=addD(d,i); if(x.getDay()!==0&&!holiday(x)) days.push(x)}
+  if(!rDay||!days.some(x=>iso(x)===rDay)){ const t=days.find(x=>hasDay(iso(x)))||days[0]; rDay=iso(t) }
+  document.getElementById("rDays").innerHTML=days.map(x=>{const k=iso(x),lbl=k===iso(d)?"Сегодня":k===iso(addD(d,1))?"Завтра":DOW[x.getDay()];
+    return `<button class="${k===rDay?"on":""}" data-k="${k}" ${hasDay(k)?"":"disabled"}>${lbl}<small>${x.getDate()}.${String(x.getMonth()+1).padStart(2,"0")}</small></button>`}).join("");
+  document.querySelectorAll("#rDays button").forEach(b=>b.onclick=()=>{rDay=b.dataset.k;rPair=null;renderRooms()});
+  if(rPair===null){ rPair=1; if(rDay===iso(d)){const cur=BELLS.find(b=>m<toMin(b[2])); rPair=cur?cur[0]:6} }
+  document.getElementById("rPairs").innerHTML=BELLS.map(b=>`<button class="${b[0]===rPair?"on":""}" data-p="${b[0]}">${b[0]} пара<small>${b[1]}</small></button>`).join("");
+  document.querySelectorAll("#rPairs button").forEach(b=>b.onclick=()=>{rPair=+b.dataset.p;renderRooms()});
+  const res=document.getElementById("rResult");
+  if(!hasDay(rDay)){res.innerHTML=emptyHTML(fromIso(rDay));return}
+  const b=busy(rDay,rPair), free=allRooms().filter(r=>!b.has(r));
+  res.innerHTML=`<div class="rhead">Свободно: ${free.length}<span>занято по расписанию: ${b.size}</span></div><div class="rgrid">${free.map(r=>`<div>${r}</div>`).join("")}</div>`;
+}
+
 /* ===== Звонки ===== */
 function renderBells(){
   const d=now(), m=d.getHours()*60+d.getMinutes(), today=dayOf(d);
@@ -496,7 +555,7 @@ function makeQR(){ if(qrDone) return; const box=document.getElementById("qr");
 }
 
 /* ===== Навигация и группы ===== */
-function go(v){ym_("reachGoal","tab_"+v);if(v==="app")makeQR();document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.v===v));document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));window.scrollTo({top:0,behavior:"smooth"})}
+function go(v){ym_("reachGoal","tab_"+v);if(v==="rooms")renderRooms();if(v==="app")makeQR();document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.v===v));document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));window.scrollTo({top:0,behavior:"smooth"})}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>go(b.dataset.v));
 document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
 document.getElementById("gSheet").onclick=e=>{if(e.target.id==="gSheet"&&group)e.target.classList.remove("on")};
@@ -510,8 +569,11 @@ function openGroups(){
 document.getElementById("groupChip").onclick=openGroups;
 if(AD_LINK){const a=document.getElementById("adLink");a.href=AD_LINK;a.style.display="inline-block"}
 
+function setupHelp(){ if(!HELP_BOT) return; const tr={"А":"A","Б":"B","В":"V"};
+  const g=(group||"").replace(/[АБВ]/g,c=>tr[c]); const url=`https://t.me/${HELP_BOT}`+(g?`?start=g${g}`:"");
+  document.getElementById("helpLink").href=url; document.getElementById("helpCard").style.display="flex" }
 function trackGroup(){ if(group) ym_("params",{group:group,mode:(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)?"app":"browser"}) }
-function renderAll(){trackGroup();
+function renderAll(){trackGroup();ROOMS=null;renderRooms();setupHelp();
   document.getElementById("groupName").textContent=group||"Группа";
   renderToday();renderWeek();renderBells();
   document.getElementById("foot").innerHTML=`Расписание обновлено: ${DATA.updated||"—"}<br><a href="https://pskms.narod.ru/rasp.htm" target="_blank" rel="noopener">Исходная таблица колледжа</a>`;
