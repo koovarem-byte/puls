@@ -49,8 +49,9 @@ button.ghost{background:rgba(255,255,255,.07);border:1px solid rgba(160,140,255,
 </div>
 </div>
 <script>
-const API="https://ep-still-mode-b90ygqum.apirest.c-7.eu-central-1.aws.neon.tech/neondb/rest/v1";
-async function rpc(name,body){const r=await fetch(`${API}/rpc/${name}`,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(body)});if(!r.ok)throw new Error(r.status);const t=await r.text();return t?JSON.parse(t):null}
+const API="https://ep-still-mode-b90ygqum.apirest.c-7.eu-central-1.aws.neon.tech/pulsq/rest/v1";
+const API_TOKEN="eyJhbGciOiJSUzI1NiIsImtpZCI6InB1bHMtMSIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwdWxzLXdlYiIsInJvbGUiOiJhbm9ueW1vdXMiLCJpc3MiOiJodHRwczovL2tvb3ZhcmVtLWJ5dGUuZ2l0aHViLmlvL3B1bHMiLCJpYXQiOjE3OTM1NTUzNTUsImV4cCI6MjUyNDU5NzIwMH0.dY6J2UOmeJ46uWHrjLeVEDlsdYMLJJnIBGmufXHEf_3ECQYfI6QL7yVgJePsgF8mP3_W7HJj3zYlCpbgAfTil1-4ESHbPObzPegbFdoi5wMt5dzp5KXWx_qO32ErJd9TlrKk-dfdIkqgVYtsjHGYhfL03CGNtKea-B16AGtL2uNOh4iSMGYOsJ_zXCzvHIc256MyGMGEqIg1Q_3f7cEZeotTNTHt7RFGHKiH1YrqCQch-jw5u6yMnkDQz8JiblOLbk8IxTAlPflSGb1yAYrXsj88uoiiq4I1xLWUcwuw5qO4vA4CREBQq05mdCl0wPt7cJ-zqh40bYJrJKg3icwlIw"; // публичный пропуск сайта: даёт только задать вопрос и прочитать свои ответы
+async function rpc(name,body){const r=await fetch(`${API}/rpc/${name}`,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json","Authorization":"Bearer "+API_TOKEN},body:JSON.stringify(body)});if(!r.ok)throw new Error(r.status+" "+(await r.text()).slice(0,120));const t=await r.text();return t?JSON.parse(t):null}
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let KEY="";try{KEY=localStorage.getItem("puls_admin")||""}catch(e){}
 let ROWS=[],F="new";
