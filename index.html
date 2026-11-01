@@ -280,7 +280,13 @@ button{font:inherit}
 
 <!--DATA-->
 <script>
-const AD_LINK = ""; // ссылка для рекламодателей, например https://t.me/username
+const AD_LINK = "";
+const METRIKA_ID = 0; // номер счётчика Яндекс Метрики
+function ym_(...a){try{window.ym&&ym(METRIKA_ID,...a)}catch(e){}}
+if(METRIKA_ID&&location.protocol==="https:"){
+  (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");
+  ym(METRIKA_ID,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
+} // ссылка для рекламодателей, например https://t.me/username
 const BELLS = [[1,"08:30","10:05"],[2,"10:15","11:50"],[3,"12:20","13:55"],[4,"14:05","15:40"],[5,"15:50","17:25"],[6,"17:40","19:15"]];
 const HOLIDAYS = {"11-04":"День народного единства","12-31":"Новый год","01-01":"Новый год","01-02":"Новогодние каникулы","01-07":"Рождество","02-23":"День защитника Отечества","03-08":"8 Марта","05-01":"Праздник Весны и Труда","05-09":"День Победы","06-12":"День России"};
 let DATA = window.PULS_DATA || null;
@@ -470,7 +476,7 @@ if(standalone){env.innerHTML=`<div class="env ok">✅ Пульс уже стои
 else if(inApp) env.innerHTML=`<div class="env warn">⚠️ Ты открыл Пульс внутри приложения (Telegram, ВК или Instagram). Отсюда поставить на экран нельзя.<br>Нажми ${isIOS?"«…» или значок компаса → «Открыть в Safari»":IC.dots+" → «Открыть в браузере»"}, а дальше по шагам ниже</div>`;
 let deferred=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;document.getElementById("installNow").style.display="flex"});
-window.addEventListener("appinstalled",()=>{document.getElementById("installNow").style.display="none";env.innerHTML=`<div class="env ok">✅ Готово! Пульс появился на экране</div>`});
+window.addEventListener("appinstalled",()=>{ym_("reachGoal","installed");document.getElementById("installNow").style.display="none";env.innerHTML=`<div class="env ok">✅ Готово! Пульс появился на экране</div>`});
 async function doInstall(){ if(deferred){deferred.prompt();try{await deferred.userChoice}catch(e){};deferred=null;document.getElementById("installNow").style.display="none"} else go("app") }
 document.getElementById("installNow").onclick=doInstall;
 document.getElementById("getStrip").onclick=doInstall;
@@ -490,7 +496,7 @@ function makeQR(){ if(qrDone) return; const box=document.getElementById("qr");
 }
 
 /* ===== Навигация и группы ===== */
-function go(v){if(v==="app")makeQR();document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.v===v));document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));window.scrollTo({top:0,behavior:"smooth"})}
+function go(v){ym_("reachGoal","tab_"+v);if(v==="app")makeQR();document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.v===v));document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));window.scrollTo({top:0,behavior:"smooth"})}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>go(b.dataset.v));
 document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
 document.getElementById("gSheet").onclick=e=>{if(e.target.id==="gSheet"&&group)e.target.classList.remove("on")};
@@ -504,7 +510,8 @@ function openGroups(){
 document.getElementById("groupChip").onclick=openGroups;
 if(AD_LINK){const a=document.getElementById("adLink");a.href=AD_LINK;a.style.display="inline-block"}
 
-function renderAll(){
+function trackGroup(){ if(group) ym_("params",{group:group,mode:(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)?"app":"browser"}) }
+function renderAll(){trackGroup();
   document.getElementById("groupName").textContent=group||"Группа";
   renderToday();renderWeek();renderBells();
   document.getElementById("foot").innerHTML=`Расписание обновлено: ${DATA.updated||"—"}<br><a href="https://pskms.narod.ru/rasp.htm" target="_blank" rel="noopener">Исходная таблица колледжа</a>`;
