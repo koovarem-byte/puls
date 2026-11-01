@@ -82,7 +82,7 @@ button{font:inherit}
 .day.off b{color:var(--dim)}
 .day.hol b{color:#ff9bd2}
 .lessons{display:flex;flex-direction:column;gap:10px}
-.ls{position:relative;display:grid;grid-template-columns:62px 1fr;gap:12px;padding:14px 14px 14px 16px;border-radius:18px;background:rgba(12,9,36,.62);border:1px solid var(--line);overflow:hidden}
+.ls{position:relative;display:grid;grid-template-columns:minmax(62px,auto) 1fr;gap:12px;padding:14px 14px 14px 16px;border-radius:18px;background:rgba(12,9,36,.62);border:1px solid var(--line);overflow:hidden}
 .ls:before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:3px;background:var(--grad)}
 .ls.now{border-color:rgba(61,220,151,.6);box-shadow:0 0 0 1px rgba(61,220,151,.25),0 10px 30px rgba(61,220,151,.12)}
 .ls.now:before{background:var(--ok)}
