@@ -48,6 +48,10 @@ def fix_typos(groups):
 
 def main():
     src = sys.argv[1] if len(sys.argv) > 1 else download()
+    if len(sys.argv) == 1:
+        import shutil
+        os.makedirs(os.path.join(ROOT, 'cache'), exist_ok=True)
+        shutil.copy(src, os.path.join(ROOT, 'cache', 'latest.xlsx'))
     new = parse(src)
     total = sum(len(v) for v in new.values())
     if len(new) < 5 or total < 20:

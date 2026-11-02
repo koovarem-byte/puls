@@ -1,7 +1,7 @@
 name: Обновить расписание
 on:
   schedule:
-    - cron: '17 * * * *'   # каждый час
+    - cron: '7,27,47 * * * *'   # каждые 20 минут (GitHub часто пропускает запуски)
   workflow_dispatch:        # кнопка «Run workflow» для ручного запуска
   push:
     paths: ['rasp.xlsx']    # если загрузить таблицу вручную
@@ -21,5 +21,5 @@ jobs:
         run: |
           git config user.name "puls-bot"
           git config user.email "puls-bot@users.noreply.github.com"
-          git add data.json status.json
+          git add data.json status.json cache/latest.xlsx
           git diff --cached --quiet || (git commit -m "Проверка расписания" && git push)
