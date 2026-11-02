@@ -57,6 +57,8 @@ def main():
     for g, days in new.items():
         groups.setdefault(g, {}).update(days)
     fix_typos(groups)
+    now = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=3)
+    json.dump({'checked': now.strftime('%Y-%m-%d %H:%M')}, open(os.path.join(ROOT, 'status.json'), 'w'))
     if groups == old.get('groups') and old.get('source') == 'xlsx' and len(sys.argv) == 1:
         print('без изменений')
         return

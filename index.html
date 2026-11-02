@@ -400,7 +400,7 @@ function listHTML(list,isToday){
 }
 function infoHTML(list){
   const sub = list&&list.some(l=>l.g) ? `<div class="info">ℹ️ Пометки «1 подгр.» и «2 подгр.» стоят так в таблице колледжа. Если не уверен, к тебе это или нет, уточни у старосты.</div>` : "";
-  return sub + (list&&list.length ? `<div class="disc">Расписание автоматически берётся из таблицы колледжа и проверяется каждый час${DATA&&DATA.updated?` · обновлено ${DATA.updated.slice(8,10)}.${DATA.updated.slice(5,7)} в ${DATA.updated.slice(11)}`:""}. Возможны расхождения и изменения в последний момент, поэтому сверяйся с чатом группы</div>` : "");
+  return sub + (list&&list.length ? `<div class="disc">Расписание автоматически берётся из таблицы колледжа и проверяется каждый час${window.PULS_CHECKED?` · последняя проверка ${PULS_CHECKED.slice(8,10)}.${PULS_CHECKED.slice(5,7)} в ${PULS_CHECKED.slice(11)}`:(DATA&&DATA.updated?` · обновлено ${DATA.updated.slice(8,10)}.${DATA.updated.slice(5,7)} в ${DATA.updated.slice(11)}`:"")}. Возможны расхождения и изменения в последний момент, поэтому сверяйся с чатом группы</div>` : "");
 }
 function emptyHTML(d){
   const h=holiday(d), known=allDates(), k=iso(d);
@@ -628,6 +628,7 @@ function renderAll(){trackGroup();ROOMS=null;renderRooms();setupHelp();
 async function boot(){
   if(!DATA){ try{ DATA=await (await fetch("data.json?t="+Date.now(),{cache:"no-store"})).json() }catch(e){ DATA={groups:{}} } }
   if(group&&!DATA.groups[group]) group=null;
+  try{const s=await (await fetch("status.json?t="+Date.now(),{cache:"no-store"})).json(); window.PULS_CHECKED=s.checked}catch(e){}
   initWeek(); renderAll();
   if(!group) openGroups();
 }
