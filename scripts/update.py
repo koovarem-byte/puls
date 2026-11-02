@@ -57,7 +57,8 @@ def main():
     if len(new) < 5 or total < 20:
         sys.exit(f'Подозрительно мало данных: групп {len(new)}, дней {total}. data.json не трогаю')
     old = json.load(open(DATA)) if os.path.exists(DATA) else {'groups': {}}
-    groups = old.get('groups', {})
+    import copy
+    groups = copy.deepcopy(old.get('groups', {}))
     for g, days in new.items():
         groups.setdefault(g, {}).update(days)
     fix_typos(groups)
