@@ -15,6 +15,20 @@ DATA = os.path.join(ROOT, 'data.json')
 
 
 def download():
+    import time
+    for attempt in range(3):
+        p = try_download()
+        if p:
+            return p
+        time.sleep(20)
+    local = os.path.join(ROOT, 'rasp.xlsx')
+    if os.path.exists(local):
+        print('скачать не вышло, беру загруженный вручную rasp.xlsx')
+        return local
+    sys.exit('Не удалось скачать таблицу. Загрузи её вручную в репозиторий как rasp.xlsx')
+
+
+def try_download():
     for u in URLS:
         try:
             req = urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0'})
@@ -26,11 +40,7 @@ def download():
             print('not xlsx from', u)
         except Exception as e:
             print('fail', u, e)
-    local = os.path.join(ROOT, 'rasp.xlsx')
-    if os.path.exists(local):
-        print('скачать не вышло, беру загруженный вручную rasp.xlsx')
-        return local
-    sys.exit('Не удалось скачать таблицу. Загрузи её вручную в репозиторий как rasp.xlsx')
+    return None
 
 
 def fix_typos(groups):
@@ -62,6 +72,14 @@ def main():
     for g, days in new.items():
         groups.setdefault(g, {}).update(days)
     fix_typos(groups)
+    # защита: если новая таблица разобралась подозрительно плохо (колледж поменял вёрстку), ничего не портим
+    old_n = new_n = 0
+    for g, days in new.items():
+        for d, v in days.items():
+            if d in old.get('groups', {}).get(g, {}):
+                old_n += len(old['groups'][g][d]); new_n += len(v)
+    if old_n > 50 and new_n < 0.6 * old_n:
+        sys.exit(f'Разбор выглядит сломанным: пар было {old_n}, стало {new_n}. data.json не трогаю')
     now = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=3)
     json.dump({'checked': now.strftime('%Y-%m-%d %H:%M')}, open(os.path.join(ROOT, 'status.json'), 'w'))
     if groups == old.get('groups') and old.get('source') == 'xlsx' and len(sys.argv) == 1:

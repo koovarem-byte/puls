@@ -42,7 +42,7 @@ FULL = [
     (r'^экстр(\.|енная)\s*пом', 'Экстренная помощь'),
     (r'^(ин[фф]о[рр]?[а-я]*ц|тинфор|инфориац)[а-я]*\.?\s*тех', 'Информационные технологии'),
     (r'^инфекц[а-я]*\.?\s*бол', 'Инфекционные болезни'),
-    (r'^(основы\s*)?фин[а-я]*\.?\s*грам', 'Основы финансовой грамотности'),
+    (r'^(основы\s*)?фин[а-я]*\.?\s*гр', 'Основы финансовой грамотности'),
     (r'^торж\.?\s*собр', 'Торжественное собрание'),
     (r'^здор[а-я]*\.?\s*чел', 'Здоровый человек'),
     (r'^медици[а-я]*\.?\s*реаб', 'Медицинская реабилитация'),
@@ -91,6 +91,46 @@ def parse_subject(s):
     return out
 
 
+def note_pairs(note):
+    """'3 пары' -> 3, '6 ч.' -> 3 (пара = 2 часа)."""
+    m = re.match(r'^(\d+)\s*(пар|ч)', (note or '').lower())
+    if not m:
+        return None
+    n = int(m.group(1))
+    return n if m.group(2) == 'пар' else max(1, n // 2)
+
+
+def merge_subgroups(lessons):
+    """«1-ЗОЖ» в одной паре и «2-ЗОЖ» в следующей = вся группа на этом предмете блоком
+    (1 подгр. у одного преподавателя, 2 подгр. у другого). Длина блока — из пометки «3 пары» / «6 ч.», иначе 2 пары."""
+    out = []
+    i = 0
+    while i < len(lessons):
+        A = lessons[i]
+        B = lessons[i + 1] if i + 1 < len(lessons) else None
+        if (B and A.get('g') == '1' and B.get('g') == '2' and A['s'] == B['s'] and B['a'] == A['a'] + 1):
+            n = note_pairs(B.get('note')) or note_pairs(A.get('note')) or 2
+            M = {'a': A['a'], 'b': min(6, A['a'] + n - 1), 's': A['s']}
+            t = [f"{x.get('t')} (1 подгр.)" if x is A else f"{x.get('t')} (2 подгр.)" for x in (A, B) if x.get('t')]
+            if t:
+                M['t'] = ', '.join(t)
+            r = A.get('r') or B.get('r')
+            if r:
+                M['r'] = r
+            for k in ('last',):
+                if A.get(k) or B.get(k):
+                    M[k] = 1
+            out.append(M)
+            # пропускаем пары, которые перекрыл блок
+            i += 2
+            while i < len(lessons) and lessons[i]['a'] <= M['b'] and lessons[i]['s'] == M['s']:
+                i += 1
+            continue
+        out.append(A)
+        i += 1
+    return out
+
+
 def build_day(rows, start, max_pairs=6):
     """rows: {offset: [subject, teacher, room]} offsets from header row (header = 0)."""
     lessons = []
@@ -135,6 +175,7 @@ def build_day(rows, start, max_pairs=6):
                     last['t'] = (last.get('t', '') + ', ' + t).strip(', ') if t not in last.get('t', '') else last['t']
                 if r and not last.get('r'):
                     last['r'] = room_label(r)
+    lessons = merge_subgroups(lessons)
     for L in lessons:
         if L['s'].upper() == 'ЗОЖ':
             L['r'] = 'центр здоровья'

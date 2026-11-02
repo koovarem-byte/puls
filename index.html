@@ -386,7 +386,7 @@ function slots(list){ // объединяем записи одной пары
 }
 function slotHTML(items,state){
   const l=items[0], [a,b]=span(l);
-  const label=l.a===0?"кл. час":l.a+" пара";
+  const label=l.a===0?"кл. час":(l.b&&l.b>l.a?`${l.a}–${l.b} пары`:l.a+" пара");
   return `<div class="ls ${l.a===0?"ch":""} ${state||""}">
     <div><div class="n">${label}</div><div class="t">${a}<i>${b}</i></div></div>
     <div>${items.map((x,i)=>`<div class="${i?"alt":""}"><div class="s">${esc(x.s)}</div>${tagsHTML(x)}</div>`).join("")}</div></div>`;
@@ -524,7 +524,7 @@ function allRooms(){
   ROOMS=Object.keys(c).filter(r=>c[r]>=5).sort((a,b)=>parseInt(a)-parseInt(b)||a.localeCompare(b)); return ROOMS;
 }
 function busy(date,pair){ const s=new Set();
-  for(const g in DATA.groups){const v=DATA.groups[g][date]; if(Array.isArray(v)) for(const l of v) if(l.a===pair&&isRoom(l.r)) s.add(l.r)} return s }
+  for(const g in DATA.groups){const v=DATA.groups[g][date]; if(Array.isArray(v)) for(const l of v) if(l.a<=pair&&pair<=(l.b||l.a)&&isRoom(l.r)) s.add(l.r)} return s }
 function hasDay(date){ for(const g in DATA.groups){const v=DATA.groups[g][date]; if(Array.isArray(v)&&v.length) return true} return false }
 function renderRooms(){
   const d=now(), m=d.getHours()*60+d.getMinutes(); const days=[];
