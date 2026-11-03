@@ -171,6 +171,12 @@ button{font:inherit}
 .qa .q{font-weight:700}.qa .a{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line2);color:#c8f7e1;font-weight:600}
 .qa .w{margin-top:6px;color:var(--mut);font-size:12px;font-weight:700}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5cae;margin-left:6px;vertical-align:2px}
+.author{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-bottom:14px}
+.author .av{flex:none;width:48px;height:48px;border-radius:15px;display:grid;place-items:center;font-family:Unbounded,sans-serif;font-weight:800;font-size:16px;background:var(--grad);box-shadow:0 0 20px var(--glow)}
+.author small{display:block;color:var(--mut);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px}
+.author b{display:block;font-family:Unbounded,sans-serif;font-size:16px;margin-top:2px}
+.author p{color:#d3cdf5;font-size:12.5px;font-weight:600;margin-top:3px}
+.app-hero .by{margin-top:12px;font-size:13px;color:#c9b6ff}
 .foot{text-align:center;color:var(--dim);font-size:11.5px;padding:6px 20px 22px;line-height:1.55;font-weight:600}
 .foot a{color:var(--mut)}
 .tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom));width:min(528px,calc(100% - 24px));
@@ -246,6 +252,10 @@ button{font:inherit}
       <div><b>Есть вопрос или нашёл ошибку?</b><p id="helpSub">Задай прямо здесь: ответ придёт сюда же</p></div>
       <button class="go2" id="askOpen">Спросить</button>
     </div>
+    <div class="author glass">
+      <div class="av">АК</div>
+      <div><small>Создатель Пульса</small><b>Артемий Котов</b><p>студент 401Б · сделал, чтобы всем было удобно 💜</p></div>
+    </div>
   </section>
 
   <section class="view" id="v-week">
@@ -285,6 +295,7 @@ button{font:inherit}
       <img src="icons/icon.svg" alt="Иконка Пульс">
       <h2 class="gt">Пульс</h2>
       <p>Пары своей группы в один тап.<br>Без таблицы на 600 строк и листания с 1 сентября.</p>
+      <p class="by">Создатель: <b>Артемий Котов</b>, студент 401Б</p>
       <div class="rating"><div><b>1 тап</b>до пар</div><div><b>0 ₽</b>навсегда</div><div><b>23</b>группы</div></div>
     </div>
     <div id="envBox"></div>
@@ -623,7 +634,7 @@ function trackGroup(){ if(group) ym_("params",{group:group,mode:(window.matchMed
 function renderAll(){trackGroup();ROOMS=null;renderRooms();setupHelp();
   document.getElementById("groupName").textContent=group||"Группа";
   renderToday();renderWeek();renderBells();
-  document.getElementById("foot").innerHTML=`Расписание обновлено: ${DATA.updated||"—"}<br><a href="https://pskms.narod.ru/rasp.htm" target="_blank" rel="noopener">Исходная таблица колледжа</a>`;
+  document.getElementById("foot").innerHTML=`Пульс создал Артемий Котов, 401Б<br>Расписание обновлено: ${DATA.updated||"—"}<br><a href="https://pskms.narod.ru/rasp.htm" target="_blank" rel="noopener">Исходная таблица колледжа</a>`;
 }
 async function boot(){
   if(!DATA){ try{ DATA=await (await fetch("data.json?t="+Date.now(),{cache:"no-store"})).json() }catch(e){ DATA={groups:{}} } }

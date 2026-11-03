@@ -32,6 +32,28 @@ def norm_group(a, b):
     return a + b
 
 
+_fill_cache = {}
+
+
+def fill_of(ws, r0, c0):
+    """Цвет заливки ячейки (r0, c0 — с нуля) или None для белого / без заливки."""
+    key = (id(ws), r0, c0)
+    if key in _fill_cache:
+        return _fill_cache[key]
+    v = None
+    try:
+        f = ws.cell(r0 + 1, c0 + 1).fill
+        if f is not None and f.fill_type == 'solid':
+            col = f.fgColor
+            rgb = col.rgb if col.type == 'rgb' else (f'theme{col.theme}:{col.tint}' if col.type == 'theme' else None)
+            if isinstance(rgb, str) and rgb.upper() not in ('FFFFFFFF', '00000000', '00FFFFFF'):
+                v = rgb
+    except Exception:
+        v = None
+    _fill_cache[key] = v
+    return v
+
+
 def parse_sheet(ws):
     grid = [list(r) for r in ws.iter_rows(values_only=True)]
     ncols = max((len(r) for r in grid), default=0)
@@ -72,12 +94,17 @@ def parse_sheet(ws):
         has_rv = any('разговор' in s(v).lower() for row in block[:2] for v in row)
         start = 3 if has_rv else 1
         for g, j in labs:
+            fills = {}
+            for k in range(1, len(block) + 1):
+                f = fill_of(ws, hr + k, j)
+                if f:
+                    fills[k] = f
             rows = {}
             for k, row in enumerate(block, start=1):
                 vals = [s(row[j]) if j < ncols else '', s(row[j + 1]) if j + 1 < ncols else '', s(row[j + 2]) if j + 2 < ncols else '']
                 if any(vals):
                     rows[k] = vals
-            days.setdefault(g, {})[date] = build_day(rows, start)
+            days.setdefault(g, {})[date] = build_day(rows, start, fills=fills)
     return days
 
 

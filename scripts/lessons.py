@@ -64,6 +64,7 @@ def nice(s):
     for pat, full in FULL:
         if re.match(pat, low):
             return full
+    s = re.sub(r'^(УП|ПП)[\s\-–]+(\w)', lambda m: m.group(1) + ' ' + m.group(2).upper(), s)
     return re.sub(r'\.(?=[А-ЯЁа-яё])', '. ', s)
 
 
@@ -88,6 +89,56 @@ def parse_subject(s):
     if m and len(m.group(1)) > 3:
         s, out['r'] = m.group(1).strip(), m.group(2)
     out['s'] = nice(s) if s else s
+    return out
+
+
+def merge_color_blocks(lessons, start, fills):
+    """Практика/занятие одним цветным блоком: 4 строки = 4 ч (2 пары), 6 строк = 6 ч (3 пары).
+    Если внутри блока один и тот же предмет — показываем одним блоком на все его пары."""
+    out = []
+    used = set()
+    for i, L in enumerate(lessons):
+        if i in used:
+            continue
+        if L['a'] == 0:
+            out.append(L)
+            continue
+        o = start + 2 * (L['a'] - 1)
+        color = fills.get(o)
+        if color and fills.get(o - 1) == color:
+            color = None  # пара не в начале цветного блока — не объединяем
+        run = 0
+        while color and fills.get(o + run) == color:
+            run += 1
+        if run >= 4:
+            n = (run + 1) // 2
+            last = min(6, L['a'] + n - 1)
+            inside = [j for j in range(i, len(lessons)) if L['a'] <= lessons[j]['a'] <= last and lessons[j]['a'] > 0]
+            if all(lessons[j]['s'] == L['s'] for j in inside):
+                M = {'a': L['a'], 's': L['s']}
+                if last > L['a']:
+                    M['b'] = last
+                ts, gs = [], set()
+                for j in inside:
+                    x = lessons[j]
+                    gs.add(x.get('g'))
+                    if x.get('t'):
+                        lab = x['t'] + (f" ({x['g']} подгр.)" if x.get('g') and len(inside) > 1 else '')
+                        if lab not in ts:
+                            ts.append(lab)
+                    if x.get('r') and not M.get('r'):
+                        M['r'] = x['r']
+                    if x.get('last'):
+                        M['last'] = 1
+                    used.add(j)
+                if ts:
+                    M['t'] = ', '.join(ts)
+                if len(inside) == 1 and L.get('g'):
+                    M['g'] = L['g']
+                M['note'] = f'{run} ч.'
+                out.append(M)
+                continue
+        out.append(L)
     return out
 
 
@@ -131,7 +182,7 @@ def merge_subgroups(lessons):
     return out
 
 
-def build_day(rows, start, max_pairs=6):
+def build_day(rows, start, max_pairs=6, fills=None):
     """rows: {offset: [subject, teacher, room]} offsets from header row (header = 0)."""
     lessons = []
     rv = any('разговор' in (rows.get(o, ['', '', ''])[0] or '').lower() for o in range(1, start))
@@ -175,6 +226,8 @@ def build_day(rows, start, max_pairs=6):
                     last['t'] = (last.get('t', '') + ', ' + t).strip(', ') if t not in last.get('t', '') else last['t']
                 if r and not last.get('r'):
                     last['r'] = room_label(r)
+    if fills:
+        lessons = merge_color_blocks(lessons, start, fills)
     lessons = merge_subgroups(lessons)
     for L in lessons:
         if L['s'].upper() == 'ЗОЖ':
