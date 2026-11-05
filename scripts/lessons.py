@@ -118,12 +118,13 @@ def merge_color_blocks(lessons, start, fills):
                 M = {'a': L['a'], 's': L['s']}
                 if last > L['a']:
                     M['b'] = last
-                ts, gs = [], set()
+                ts = []
+                gs = {lessons[j].get('g') for j in inside}
+                one_g = len(gs) == 1 and None not in gs
                 for j in inside:
                     x = lessons[j]
-                    gs.add(x.get('g'))
                     if x.get('t'):
-                        lab = x['t'] + (f" ({x['g']} подгр.)" if x.get('g') and len(inside) > 1 else '')
+                        lab = x['t'] + (f" ({x['g']} подгр.)" if x.get('g') and len(inside) > 1 and not one_g else '')
                         if lab not in ts:
                             ts.append(lab)
                     if x.get('r') and not M.get('r'):
@@ -133,7 +134,7 @@ def merge_color_blocks(lessons, start, fills):
                     used.add(j)
                 if ts:
                     M['t'] = ', '.join(ts)
-                if len(inside) == 1 and L.get('g'):
+                if one_g:
                     M['g'] = L['g']
                 M['note'] = f'{run} ч.'
                 out.append(M)
@@ -170,7 +171,8 @@ def merge_color_blocks(lessons, start, fills):
                         M['a'] = a0
                         if b0 > a0:
                             M['b'] = b0
-                        M['note'] = f'{run} ч.' if len(chunks) == 1 else f'{2 * (b0 - a0 + 1)} ч.'
+                        if b0 > a0:
+                            M['note'] = f'{run} ч.' if len(chunks) == 1 else f'{2 * (b0 - a0 + 1)} ч.'
                         out.append(M)
                 continue
         out.append(L)
@@ -225,6 +227,7 @@ def build_day(rows, start, max_pairs=6, fills=None):
         lessons.append({'a': 0, 's': 'Разговоры о важном'})
     last = None
     for p in range(1, max_pairs + 1):
+        halves = {}
         for half in (0, 1):
             o = start + 2 * (p - 1) + half
             subj, tch, room = [clean(x) for x in (rows.get(o) or ['', '', ''])]
@@ -234,7 +237,10 @@ def build_day(rows, start, max_pairs=6, fills=None):
                 if last is not None:
                     last['note'] = ('в ' + subj.replace('.', ':')) if TIME.match(subj) else subj
                 continue
-            if subj.lower() in ('нет', '-', '—') or NAME.match(subj):
+            if subj.lower() in ('нет', '-', '—'):
+                halves[half] = 'нет'
+                continue
+            if NAME.match(subj):
                 continue
             t, r2 = split_teacher(tch)
             r = room or r2
@@ -255,12 +261,22 @@ def build_day(rows, start, max_pairs=6, fills=None):
                     L['r'] = rr
                 lessons.append(L)
                 last = L
+                if tt or rr:
+                    halves[half] = L
             elif last is not None and last['a'] == p:
                 # строка без предмета: доп. преподаватель / кабинет к текущей паре
                 if t:
                     last['t'] = (last.get('t', '') + ', ' + t).strip(', ') if t not in last.get('t', '') else last['t']
                 if r and not last.get('r'):
                     last['r'] = room_label(r)
+        # пара из двух строк без «1-/2-»: верхняя = 1 подгруппа, нижняя = 2 («нет» = у подгруппы пары нет)
+        h0, h1 = halves.get(0), halves.get(1)
+        if h0 and h1 and (isinstance(h0, dict) or isinstance(h1, dict)):
+            if not any(isinstance(h, dict) and h.get('g') for h in (h0, h1)):
+                if isinstance(h0, dict):
+                    h0['g'] = '1'
+                if isinstance(h1, dict):
+                    h1['g'] = '2'
     if fills:
         lessons = merge_color_blocks(lessons, start, fills)
     lessons = merge_subgroups(lessons)
