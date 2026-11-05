@@ -138,6 +138,41 @@ def merge_color_blocks(lessons, start, fills):
                 M['note'] = f'{run} ч.'
                 out.append(M)
                 continue
+            if all(lessons[j].get('g') in ('1', '2') for j in inside):
+                # «1- ПМ06» и «2- ПМ05» друг под другом в одном цветном блоке = подгруппы занимаются
+                # одновременно, каждая весь блок (а не 1 подгр. на 3 паре, 2 подгр. на 4-й)
+                # подряд одинаковые записи одной подгруппы считаем одной
+                ent, prev = [], {}
+                for j in inside:
+                    x = lessons[j]
+                    used.add(j)
+                    if prev.get(x['g']) == x['s']:
+                        continue
+                    prev[x['g']] = x['s']
+                    ent.append(x)
+                # куски «1-…, 2-…»: новый кусок, когда подгруппа повторяется (1-Реаб, 2-Тер, 1-Тер, 2-Реаб = смена)
+                chunks, cur = [], []
+                for x in ent:
+                    if any(y['g'] == x['g'] for y in cur):
+                        chunks.append(cur); cur = []
+                    cur.append(x)
+                if cur:
+                    chunks.append(cur)
+                total = last - L['a'] + 1
+                per = max(1, total // len(chunks))
+                for ci, ch in enumerate(chunks):
+                    a0 = L['a'] + ci * per
+                    b0 = last if ci == len(chunks) - 1 else min(last, a0 + per - 1)
+                    if a0 > last:
+                        a0 = b0 = last
+                    for x in ch:
+                        M = {k: v for k, v in x.items() if k not in ('a', 'b', 'note')}
+                        M['a'] = a0
+                        if b0 > a0:
+                            M['b'] = b0
+                        M['note'] = f'{run} ч.' if len(chunks) == 1 else f'{2 * (b0 - a0 + 1)} ч.'
+                        out.append(M)
+                continue
         out.append(L)
     return out
 
