@@ -287,7 +287,7 @@ button{font:inherit}
       <div id="bellsRest"></div>
       <div class="bells" id="bells"></div>
     </div>
-    <div class="joke" style="margin:0 0 14px">🍔 Большая перемена после 2 пары: 30 минут. Успеешь в столовку, если побежишь.</div>
+    <div class="joke" style="margin:0 0 14px">🍔 Обед 30 минут: после 2 пары и после 4 пары. Успеешь в столовку, если побежишь.</div>
   </section>
 
   <section class="view" id="v-app">
@@ -336,6 +336,7 @@ button{font:inherit}
 
 <div class="sheet" id="gSheet"><div class="box">
   <h3>Выбери свою группу</h3><p>Запомню выбор: в следующий раз сразу откроются твои пары.</p>
+  <div class="course">Подгруппа</div><div class="chips" id="subChips"></div>
   <div id="gGrid"></div>
 </div></div>
 
@@ -348,7 +349,7 @@ if(METRIKA_ID&&location.protocol==="https:"){
   (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");
   ym(METRIKA_ID,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 } // ссылка для рекламодателей, например https://t.me/username
-const BELLS = [[1,"08:30","10:05"],[2,"10:15","11:50"],[3,"12:20","13:55"],[4,"14:05","15:40"],[5,"15:50","17:25"],[6,"17:40","19:15"]];
+const BELLS = [[1,"08:30","10:05"],[2,"10:15","11:50"],[3,"12:20","13:55"],[4,"14:05","15:40"],[5,"16:10","17:45"],[6,"17:55","19:30"]];
 const HOLIDAYS = {"11-04":"День народного единства","12-31":"Новый год","01-01":"Новый год","01-02":"Новогодние каникулы","01-07":"Рождество","02-23":"День защитника Отечества","03-08":"8 Марта","05-01":"Праздник Весны и Труда","05-09":"День Победы","06-12":"День России"};
 let DATA = window.PULS_DATA || null;
 
@@ -376,9 +377,9 @@ const J={free:["Пар нет. Официально разрешено жить 
   done:["Пары всё! Можно на тренировку или по своим делам 🏀","Учёба на сегодня закрыта. Ты красавчик 🔥"]};
 
 /* ===== Группа ===== */
-let group=null; try{group=localStorage.getItem("group")}catch(e){}
+let group=null, sub=""; try{group=localStorage.getItem("group");sub=localStorage.getItem("sub")||""}catch(e){}
 const G=()=>(DATA&&DATA.groups[group])||{};
-const dayOf=d=>{const v=G()[iso(d)];return Array.isArray(v)?v:null};
+const dayOf=d=>{const v=G()[iso(d)];return Array.isArray(v)?v.filter(l=>!sub||!l.g||l.g===sub):null};
 const allDates=()=>Object.keys(G()).sort();
 
 /* ===== Карточка пары ===== */
@@ -410,8 +411,12 @@ function listHTML(list,isToday){
   }).join("");
 }
 function infoHTML(list){
-  const sub = list&&list.some(l=>l.g) ? `<div class="info">ℹ️ Пометки «1 подгр.» и «2 подгр.» стоят так в таблице колледжа. Если не уверен, к тебе это или нет, уточни у старосты.</div>` : "";
-  return sub + (list&&list.length ? `<div class="disc">Расписание автоматически берётся из таблицы колледжа и проверяется каждые 10 минут${window.PULS_CHECKED?` · последняя проверка ${PULS_CHECKED.slice(8,10)}.${PULS_CHECKED.slice(5,7)} в ${PULS_CHECKED.slice(11)}`:(DATA&&DATA.updated?` · обновлено ${DATA.updated.slice(8,10)}.${DATA.updated.slice(5,7)} в ${DATA.updated.slice(11)}`:"")}. Возможны расхождения и изменения в последний момент, поэтому сверяйся с чатом группы</div>` : "");
+  const raw = list&&group ? (G()[iso(fromIso(selDay||iso(now())))]||[]) : [];
+  const hasSub = list&&(list.some(l=>l.g)||(sub&&Object.values(G()).some(v=>Array.isArray(v)&&v.some(l=>l.g))));
+  const subInfo = !hasSub ? "" : sub
+    ? `<div class="info">👥 Показаны пары <b>${sub} подгруппы</b> и общие. Сменить подгруппу: нажми на группу вверху справа. Пометки берутся из таблицы колледжа, если сомневаешься, уточни у старосты.</div>`
+    : `<div class="info">👥 Можно выбрать свою подгруппу, и Пульс покажет только твои пары: нажми на группу вверху справа. Пометки «1 подгр.» и «2 подгр.» берутся из таблицы колледжа, если сомневаешься, уточни у старосты.</div>`;
+  return subInfo + (list&&list.length ? `<div class="disc">Расписание автоматически берётся из таблицы колледжа и проверяется каждые 10 минут${window.PULS_CHECKED?` · последняя проверка ${PULS_CHECKED.slice(8,10)}.${PULS_CHECKED.slice(5,7)} в ${PULS_CHECKED.slice(11)}`:(DATA&&DATA.updated?` · обновлено ${DATA.updated.slice(8,10)}.${DATA.updated.slice(5,7)} в ${DATA.updated.slice(11)}`:"")}. Возможны расхождения и изменения в последний момент, поэтому сверяйся с чатом группы</div>` : "");
 }
 function emptyHTML(d){
   const h=holiday(d), known=allDates(), k=iso(d);
@@ -617,7 +622,11 @@ function go(v){ym_("reachGoal","tab_"+v);if(v==="rooms")renderRooms();if(v==="ap
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>go(b.dataset.v));
 document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
 document.getElementById("gSheet").onclick=e=>{if(e.target.id==="gSheet"&&group)e.target.classList.remove("on")};
-function openGroups(){
+function renderSub(){
+  document.getElementById("subChips").innerHTML=[["","Вся группа"],["1","1 подгруппа"],["2","2 подгруппа"]].map(([v,t])=>`<button class="${v===sub?"on":""}" data-s="${v}">${t}</button>`).join("");
+  document.querySelectorAll("#subChips button").forEach(b=>b.onclick=()=>{sub=b.dataset.s;try{localStorage.setItem("sub",sub)}catch(e){};renderSub();if(group)renderAll()});
+}
+function openGroups(){renderSub();
   const gs=Object.keys(DATA.groups).sort((a,b)=>a.localeCompare(b,"ru",{numeric:true}));
   const by={}; gs.forEach(g=>{const c=g[0];(by[c]=by[c]||[]).push(g)});
   document.getElementById("gGrid").innerHTML=Object.keys(by).sort().map(c=>`<div class="course">${c} курс</div><div class="grid-g">${by[c].map(g=>`<button class="${g===group?"on":""}" data-g="${g}">${g}</button>`).join("")}</div>`).join("");
@@ -632,7 +641,7 @@ function setupHelp(){ if(!window.PULS_DATA) checkNewAnswers(); if(!HELP_BOT) ret
   document.getElementById("helpLink").href=url; document.getElementById("helpCard").style.display="flex" }
 function trackGroup(){ if(group) ym_("params",{group:group,mode:(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)?"app":"browser"}) }
 function renderAll(){trackGroup();ROOMS=null;renderRooms();setupHelp();
-  document.getElementById("groupName").textContent=group||"Группа";
+  document.getElementById("groupName").textContent=group?(group+(sub?` · ${sub} пг`:"")):"Группа";
   renderToday();renderWeek();renderBells();
   document.getElementById("foot").innerHTML=`Пульс создал Артемий Котов, 401Б<br>Расписание обновлено: ${DATA.updated||"—"}<br><a href="https://pskms.narod.ru/rasp.htm" target="_blank" rel="noopener">Исходная таблица колледжа</a>`;
 }
