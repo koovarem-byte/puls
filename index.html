@@ -555,7 +555,7 @@ function renderRooms(){
   const res=document.getElementById("rResult");
   if(!hasDay(rDay)){res.innerHTML=emptyHTML(fromIso(rDay));return}
   const b=busy(rDay,rPair), free=allRooms().filter(r=>!b.has(r));
-  res.innerHTML=`<div class="rhead">Свободно: ${free.length}<span>занято по расписанию: ${b.size}</span></div><div class="rgrid">${free.map(r=>`<div>${r}</div>`).join("")}</div>`;
+  res.innerHTML=`<div class="rhead">Свободно: ${free.length}<span>занято по расписанию: ${b.size}</span></div><div class="rgrid">${free.map(r=>`<div>${esc(r)}</div>`).join("")}</div>`;
 }
 
 /* ===== Звонки ===== */
