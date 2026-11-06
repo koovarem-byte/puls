@@ -195,24 +195,118 @@ button{font:inherit}
 .grid-g{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .grid-g button{padding:12px 0;border-radius:13px;border:1px solid var(--line);background:rgba(14,10,40,.7);color:var(--txt);font-weight:800;cursor:pointer}
 .grid-g button.on{background:var(--grad);border-color:rgba(255,255,255,.35)}
+
+/* ===== новые элементы ===== */
+.tr{display:flex;gap:8px;align-items:center}
+.chip.theme{padding:9px 11px;font-size:15px}
+.meta-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+.mchip{font:inherit;font-size:12px;font-weight:800;padding:7px 11px;border-radius:999px;border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--mut)}
+button.mchip{cursor:pointer;color:var(--txt)}
+.mchip.sub{background:rgba(255,192,97,.1);border-color:rgba(255,192,97,.4);color:#ffd99a}
+.more{margin-top:8px;font-size:12.5px;color:var(--mut);font-weight:600;line-height:1.45;text-align:center}
+.more summary{cursor:pointer;font-weight:800;list-style:none;font-size:12px;opacity:.85}
+.more summary::-webkit-details-marker{display:none}
+.more summary:after{content:" ›"}
+.more[open] summary{margin-bottom:6px}
+.tag.pe{background:rgba(61,220,151,.12);border-color:rgba(61,220,151,.45);color:#c8f7e1}
+.pe-box{margin-top:12px;padding:12px 14px;border-radius:16px;background:rgba(61,220,151,.08);border:1px solid rgba(61,220,151,.35)}
+.pe-box h4{font-size:13px;font-weight:800;margin-bottom:8px}
+.pe-box .pr{display:flex;justify-content:space-between;gap:10px;font-weight:800;font-size:14px;padding:4px 0}
+.pe-box .pr span{color:var(--mut);font-size:12px}
+
+/* ===== Тема «Медицина» (красно-белая) ===== */
+body.med{--bg:#fff6f6;--card:#fff;--card2:#fff;--line:#f2d6d8;--line2:#eabdc1;--txt:#24161a;--mut:#85636a;--dim:#b3959a;
+  --grad:linear-gradient(120deg,#ff5a6a 0%,#e11d2e 60%,#b5101f 100%);--glow:rgba(225,29,46,.26);--ok:#12a36b;
+  background:radial-gradient(700px 420px at 100% -5%,rgba(255,90,106,.14),transparent 60%),radial-gradient(600px 460px at -15% 30%,rgba(225,29,46,.07),transparent 60%),#fff6f6;background-attachment:fixed}
+html.med{background:#fff6f6}
+body.med:before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:#e11d2e;z-index:30}
+body.med .glass{background:#fff;border-color:var(--line);box-shadow:0 6px 22px rgba(150,20,35,.07);backdrop-filter:none;-webkit-backdrop-filter:none}
+body.med .chip{background:#fff;border-color:var(--line2);color:var(--txt);box-shadow:0 2px 10px rgba(150,20,35,.06)}
+body.med .brand img{box-shadow:0 4px 14px var(--glow)}
+body.med .get{background:var(--grad);border:0;color:#fff;box-shadow:0 8px 22px var(--glow)}
+body.med .get small{color:#ffe3e5}
+body.med .get .go{color:#c01020}
+body.med .hero{background:linear-gradient(135deg,#ef3343,#c0101f);color:#fff;border:0;box-shadow:0 12px 30px rgba(200,16,31,.25)}
+body.med .hero p{color:#ffe1e4}
+body.med .hero .ecg{opacity:.3}
+body.med .hero .ecg path{stroke:#fff}
+body.med .pill{color:#fff;background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.45)}
+body.med .stat .lbl{color:var(--mut)}
+body.med .stat .big span.u{color:#c01020}
+body.med .bar{background:#f7e4e5}
+body.med .bar i{box-shadow:none}
+body.med .ico{box-shadow:0 4px 12px var(--glow)}
+body.med .day{background:#fff}
+body.med .day.on{color:#fff;border-color:transparent}
+body.med .day.on small{color:#ffe3e5}
+body.med .day.hol b{color:#e11d2e}
+body.med .ls{background:#fff;border-color:var(--line)}
+body.med .ls.ch{background:#fff4f4}
+body.med .ls.now{border-color:rgba(18,163,107,.55);box-shadow:0 0 0 1px rgba(18,163,107,.2),0 8px 22px rgba(18,163,107,.1)}
+body.med .ls .n{color:#c01020}
+body.med .ls .t{color:var(--txt)}
+body.med .tag{background:#fdeced;border-color:#f4c8cc;color:#9b1522}
+body.med .tag.room{background:#eef3fb;border-color:#cfdcf0;color:#27466e}
+body.med .tag.sub{background:#fff5df;border-color:#f1d596;color:#845400}
+body.med .tag.last{background:#ffe9f1;border-color:#f6bfd3;color:#a1104a}
+body.med .tag.note{background:#f7f2f2;border-color:var(--line);color:var(--mut)}
+body.med .tag.pe,body.med .pe-box{background:#eafaf2;border-color:#a8e3c6;color:#0b6b45}
+body.med .hint2{color:#845400}
+body.med .mchip{background:#fff;color:var(--mut)}
+body.med button.mchip{color:var(--txt)}
+body.med .mchip.sub{background:#fff5df;border-color:#f1d596;color:#845400}
+body.med .info{background:#fff8e8;border-color:#f2dba3;color:#6b4800}
+body.med .empty{color:var(--mut)}
+body.med .joke{background:#fff1f2;border-color:var(--line);color:#5b3a41}
+body.med .bl{background:#fff}
+body.med .bl .k{background:#fdeced;border-color:#f4c8cc;color:#9b1522}
+body.med .bl.now .k{background:var(--ok);color:#fff}
+body.med .rest{background:#fff1f2;color:#5b3a41}
+body.med .app-hero p{color:var(--mut)}
+body.med .app-hero .by{color:#c01020}
+body.med .os button.on{color:#fff}
+body.med .step{background:#fff;color:var(--txt)}
+body.med .step>span{color:#fff}
+body.med .promo p{color:var(--mut)}
+body.med .cat img{border-color:#f4c8cc;box-shadow:0 6px 16px rgba(150,20,35,.12)}
+body.med .btn.ghost{background:#fff;color:var(--txt)}
+body.med .env.warn{background:#fff8e8;border-color:#f2dba3;color:#6b4800}
+body.med .env.ok{background:#eafaf2;border-color:#a8e3c6;color:#0b6b45}
+body.med .ic{background:#f7e4e5}
+body.med .chips button{background:#fff;color:var(--txt)}
+body.med .chips button.on{color:#fff;border-color:transparent}
+body.med .chips button.on small{color:#ffe3e5}
+body.med .rgrid div{background:#eafaf2;border-color:#a8e3c6;color:#0b6b45}
+body.med #qSheet textarea,body.med #qSheet input{background:#fff;color:var(--txt)}
+body.med .qstatus{color:#0b6b45}
+body.med .qstatus.err{color:#c01020}
+body.med .qa{background:#fff}
+body.med .qa .a{color:#0b6b45}
+body.med .author p{color:var(--mut)}
+body.med .tabbar{background:rgba(255,255,255,.94);border-color:var(--line);box-shadow:0 10px 30px rgba(150,20,35,.14)}
+body.med .tab.on{color:#fff;background:var(--grad);box-shadow:none}
+body.med .sheet{background:rgba(40,10,15,.45)}
+body.med .sheet .box{background:#fff}
+body.med .grid-g button{background:#fff;color:var(--txt)}
+body.med .grid-g button.on{color:#fff;border-color:transparent;background:var(--grad)}
+body.med .day.on,body.med .chips button.on{background:var(--grad);box-shadow:0 6px 16px var(--glow)}
+body.med .brand img,body.med .get img,body.med .app-hero img{filter:hue-rotate(105deg) saturate(1.15)}
 </style>
 </head>
 <body>
+<script>var THEME="med";try{THEME=localStorage.getItem("theme")||"med"}catch(e){}if(THEME==="med"){document.body.classList.add("med");document.documentElement.classList.add("med");document.querySelector('meta[name="theme-color"]').content="#e11d2e"}</script>
 <div class="wrap">
   <header class="top">
     <div class="brand">
       <img src="icons/icon.svg" alt="">
       <div><b class="gt">ПУЛЬС</b><small>от Артемия Котова · 401Б</small></div>
     </div>
+    <div class="tr"><button class="chip theme" id="themeBtn" aria-label="Сменить тему">🎨</button>
     <button class="chip" id="groupChip" aria-label="Выбрать группу"><span id="groupName">Группа</span>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg></button>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg></button></div>
   </header>
 
   <section class="view on" id="v-today">
-    <div class="author glass">
-      <div class="av">АК</div>
-      <div><small>Создатель Пульса</small><b>Артемий Котов</b><p>студент 401Б · сделал, чтобы всем было удобно 💜</p></div>
-    </div>
     <div class="get" data-go="app" id="getStrip">
       <img src="icons/icon.svg" alt="">
       <div><b>Пульс на главный экран</b><small>Открывай пары в один тап, как приложение</small></div>
@@ -248,7 +342,7 @@ button{font:inherit}
       <span class="ad-tag">Место для рекламы</span>
       <div class="cat"><img src="icons/cat.jpg" alt="Кот"><div>
         <b>Здесь может быть ваша реклама</b>
-        <p>А пока это место охраняет кот. Он важный, но готов подвинуться для хорошего предложения 🐾</p>
+        <p>Пока место охраняет кот 🐾</p>
       </div></div>
       <a id="adLink" href="#" target="_blank" rel="noopener" style="display:none">Разместить рекламу →</a>
     </div>
@@ -273,11 +367,11 @@ button{font:inherit}
   <section class="view" id="v-rooms">
     <div class="sec glass">
       <div class="sec-h"><h2><span class="ico">🚪</span>Свободные кабинеты</h2></div>
-      <p class="rsub">Где сейчас пусто, чтобы позаниматься</p>
+      <p class="rsub">Где пусто, чтобы позаниматься</p>
       <div class="chips" id="rDays"></div>
       <div class="chips pairs" id="rPairs"></div>
       <div id="rResult"></div>
-      <div class="info">⚠️ Свободно <b>по расписанию</b>. Кабинет может быть занят отработкой, консультацией или изменением, которого нет в таблице. Возможны расхождения, поэтому проверь на месте.</div>
+      <details class="more"><summary>⚠️ Свободно по расписанию</summary>Кабинет может быть занят отработкой или консультацией, которых нет в таблице. Проверь на месте</details>
     </div>
   </section>
 
@@ -383,11 +477,20 @@ const dayOf=d=>{const v=G()[iso(d)];return Array.isArray(v)?v.filter(l=>!sub||!l
 const allDates=()=>Object.keys(G()).sort();
 
 /* ===== Карточка пары ===== */
-function tagsHTML(l){
+const isPE=s=>/^физкульт/i.test(s||"");
+function peAt(date,pair,except){const out=[];
+  for(const g in DATA.groups){if(g===except)continue; const v=DATA.groups[g][date];
+    if(Array.isArray(v)) for(const l of v) if(isPE(l.s)&&l.a<=pair&&pair<=(l.b||l.a)){out.push({g,t:l.t||""});break}}
+  return out.sort((x,y)=>x.g.localeCompare(y.g,"ru",{numeric:true}))}
+function tagsHTML(l,date){
   const t=[];
   if(l.g) t.push(`<span class="tag sub">${l.g} подгр.</span>`);
   if(l.t) t.push(`<span class="tag">👤 ${esc(l.t)}</span>`);
   if(l.r) t.push(`<span class="tag room">📍 ${/^\d/.test(l.r)?"каб. ":""}${esc(l.r)}</span>`);
+  if(date&&isPE(l.s)){
+    const all=peAt(date,l.a,group), same=all.filter(x=>!l.t||!x.t||x.t===l.t).map(x=>x.g), other=all.filter(x=>l.t&&x.t&&x.t!==l.t).map(x=>x.g);
+    if(same.length) t.push(`<span class="tag pe">🤝 вместе с ${esc(same.join(", "))}</span>`);
+    if(other.length) t.push(`<span class="tag note">🏀 в это же время: ${esc(other.join(", "))}</span>`)}
   if(l.last) t.push(`<span class="tag last">🏁 последнее занятие</span>`);
   if(l.note) t.push(`<span class="tag note">${esc(l.note)}</span>`);
   return (t.length?`<div class="tags">${t.join("")}</div>`:"")+(l.hint?`<div class="hint2">💬 ${esc(l.hint)}</div>`:"");
@@ -396,27 +499,30 @@ function slots(list){ // объединяем записи одной пары
   const m=new Map(); for(const l of list){const k=l.a; if(!m.has(k)) m.set(k,[]); m.get(k).push(l)}
   return [...m.values()];
 }
-function slotHTML(items,state){
+function slotHTML(items,state,date){
   const l=items[0], [a,b]=span(l);
   const label=l.a===0?"кл. час":(l.b&&l.b>l.a?`${l.a}–${l.b} пары`:l.a+" пара");
   return `<div class="ls ${l.a===0?"ch":""} ${state||""}">
     <div><div class="n">${label}</div><div class="t">${a}<i>${b}</i></div></div>
-    <div>${items.map((x,i)=>`<div class="${i?"alt":""}"><div class="s">${esc(x.s)}</div>${tagsHTML(x)}</div>`).join("")}</div></div>`;
+    <div>${items.map((x,i)=>`<div class="${i?"alt":""}"><div class="s">${esc(x.s)}</div>${tagsHTML(x,date)}</div>`).join("")}</div></div>`;
 }
-function listHTML(list,isToday){
+function listHTML(list,isToday,date){
   const m=now().getHours()*60+now().getMinutes();
   return slots(list).map(items=>{
-    if(!isToday) return slotHTML(items);
-    const [a,b]=span(items[0]); return slotHTML(items, m>=toMin(b)?"past":(m>=toMin(a)?"now":""));
+    if(!isToday) return slotHTML(items,"",date);
+    const [a,b]=span(items[0]); return slotHTML(items, m>=toMin(b)?"past":(m>=toMin(a)?"now":""),date);
   }).join("");
 }
 function infoHTML(list){
   const raw = list&&group ? (G()[iso(fromIso(selDay||iso(now())))]||[]) : [];
   const hasSub = list&&(list.some(l=>l.g)||(sub&&Object.values(G()).some(v=>Array.isArray(v)&&v.some(l=>l.g))));
-  const subInfo = !hasSub ? "" : sub
-    ? `<div class="info">👥 Показаны пары <b>${sub} подгруппы</b> и общие. Сменить подгруппу: нажми на группу вверху справа. Пометки берутся из таблицы колледжа, если сомневаешься, уточни у старосты.</div>`
-    : `<div class="info">👥 Можно выбрать свою подгруппу, и Пульс покажет только твои пары: нажми на группу вверху справа. Пометки «1 подгр.» и «2 подгр.» берутся из таблицы колледжа, если сомневаешься, уточни у старосты.</div>`;
-  return subInfo + (list&&list.length ? `<div class="disc">Расписание автоматически берётся из таблицы колледжа и проверяется каждые 10 минут${window.PULS_CHECKED?` · последняя проверка ${PULS_CHECKED.slice(8,10)}.${PULS_CHECKED.slice(5,7)} в ${PULS_CHECKED.slice(11)}`:(DATA&&DATA.updated?` · обновлено ${DATA.updated.slice(8,10)}.${DATA.updated.slice(5,7)} в ${DATA.updated.slice(11)}`:"")}. Возможны расхождения и изменения в последний момент, поэтому сверяйся с чатом группы</div>` : "");
+  const chk=window.PULS_CHECKED||(DATA&&DATA.updated)||"";
+  let h='<div class="meta-row">';
+  if(hasSub) h+=`<button class="mchip sub" data-open-groups>👥 ${sub?sub+" подгруппа · сменить":"Выбрать подгруппу"}</button>`;
+  if(list&&list.length&&chk) h+=`<span class="mchip">🔄 проверено ${chk.slice(8,10)}.${chk.slice(5,7)} в ${chk.slice(11)}</span>`;
+  h+='</div>';
+  if(list&&list.length) h+=`<details class="more"><summary>Откуда расписание?</summary>Из таблицы колледжа, Пульс проверяет её каждые 10 минут. Подгруппы тоже из таблицы. Бывают изменения в последний момент, сверяйся с чатом группы или старостой</details>`;
+  return h;
 }
 function emptyHTML(d){
   const h=holiday(d), known=allDates(), k=iso(d);
@@ -478,7 +584,7 @@ function renderToday(){
   document.getElementById("nyHint").textContent=`полугодие пройдено на ${pct.toFixed(0)}%`;
 
   document.getElementById("dayHead").textContent=head;
-  document.getElementById("todayList").innerHTML=target.length?listHTML(target,isToday):emptyHTML(d);
+  document.getElementById("todayList").innerHTML=target.length?listHTML(target,isToday,iso(tDate)):emptyHTML(d);
   document.getElementById("todayInfo").innerHTML=infoHTML(target);
   const j=jokeFor(target), je=document.getElementById("todayJoke"); je.textContent=j; je.style.display=j?"block":"none";
 }
@@ -496,7 +602,7 @@ function renderWeek(){
     return `<div class="day ${k===selDay?"on":""} ${k===t?"today":""} ${holiday(x)?"hol":(!v||!v.length?"off":"")}" data-k="${k}"><b>${DOW[x.getDay()]}</b><small>${x.getDate()}.${String(x.getMonth()+1).padStart(2,"0")}</small></div>`}).join("");
   document.querySelectorAll(".day").forEach(e=>e.onclick=()=>{selDay=e.dataset.k;renderWeek()});
   const sd=fromIso(selDay), v=dayOf(sd);
-  document.getElementById("weekList").innerHTML=v&&v.length?listHTML(v,selDay===t):emptyHTML(sd);
+  document.getElementById("weekList").innerHTML=v&&v.length?listHTML(v,selDay===t,selDay):emptyHTML(sd);
   document.getElementById("weekInfo").innerHTML=infoHTML(v);
 }
 document.getElementById("wPrev").onclick=()=>{wStart=addD(wStart,-7);selDay=null;renderWeek()};
@@ -542,6 +648,11 @@ function allRooms(){
 function busy(date,pair){ const s=new Set();
   for(const g in DATA.groups){const v=DATA.groups[g][date]; if(Array.isArray(v)) for(const l of v) if(l.a<=pair&&pair<=(l.b||l.a)&&isRoom(l.r)) s.add(l.r)} return s }
 function hasDay(date){ for(const g in DATA.groups){const v=DATA.groups[g][date]; if(Array.isArray(v)&&v.length) return true} return false }
+function peBox(date,pair){
+  const pe=peAt(date,pair,null); if(!pe.length) return "";
+  const by={}; pe.forEach(x=>{(by[x.t]=by[x.t]||[]).push(x.g)});
+  return `<div class="pe-box"><h4>🏀 Физкультура в эту пару</h4>${Object.entries(by).map(([t,gs])=>`<div class="pr">${esc(gs.join(" + "))}<span>${t?"👤 "+esc(t):""}${gs.length>1?" · вместе":""}</span></div>`).join("")}</div>`;
+}
 function renderRooms(){
   const d=now(), m=d.getHours()*60+d.getMinutes(); const days=[];
   for(let i=0;days.length<6&&i<14;i++){const x=addD(d,i); if(x.getDay()!==0&&!holiday(x)) days.push(x)}
@@ -555,7 +666,7 @@ function renderRooms(){
   const res=document.getElementById("rResult");
   if(!hasDay(rDay)){res.innerHTML=emptyHTML(fromIso(rDay));return}
   const b=busy(rDay,rPair), free=allRooms().filter(r=>!b.has(r));
-  res.innerHTML=`<div class="rhead">Свободно: ${free.length}<span>занято по расписанию: ${b.size}</span></div><div class="rgrid">${free.map(r=>`<div>${esc(r)}</div>`).join("")}</div>`;
+  res.innerHTML=`<div class="rhead">Свободно: ${free.length}<span>занято по расписанию: ${b.size}</span></div><div class="rgrid">${free.map(r=>`<div>${esc(r)}</div>`).join("")}</div>`+peBox(rDay,rPair);
 }
 
 /* ===== Звонки ===== */
@@ -634,6 +745,12 @@ function openGroups(){renderSub();
   document.getElementById("gSheet").classList.add("on");
 }
 document.getElementById("groupChip").onclick=openGroups;
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[data-open-groups]"))openGroups()});
+function applyTheme(){const med=THEME==="med";document.body.classList.toggle("med",med);document.documentElement.classList.toggle("med",med);
+  document.querySelector('meta[name="theme-color"]').content=med?"#e11d2e":"#07051a";
+  const b=document.getElementById("themeBtn");b.textContent=med?"💜":"🩺";b.title=med?"Фиолетовая тема":"Красно-белая тема"}
+applyTheme();
+document.getElementById("themeBtn").onclick=()=>{THEME=THEME==="med"?"purple":"med";try{localStorage.setItem("theme",THEME)}catch(e){};applyTheme();ym_("reachGoal","theme_"+THEME)};
 if(AD_LINK){const a=document.getElementById("adLink");a.href=AD_LINK;a.style.display="inline-block"}
 
 function setupHelp(){ if(!window.PULS_DATA) checkNewAnswers(); if(!HELP_BOT) return; const tr={"А":"A","Б":"B","В":"V"};
