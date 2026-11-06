@@ -81,9 +81,19 @@ def main():
     if old_n > 50 and new_n < 0.6 * old_n:
         sys.exit(f'Разбор выглядит сломанным: пар было {old_n}, стало {new_n}. data.json не трогаю')
     now = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=3)
-    json.dump({'checked': now.strftime('%Y-%m-%d %H:%M')}, open(os.path.join(ROOT, 'status.json'), 'w'))
-    if groups == old.get('groups') and old.get('source') == 'xlsx' and len(sys.argv) == 1:
-        print('без изменений')
+    same = groups == old.get('groups') and old.get('source') == 'xlsx' and len(sys.argv) == 1
+    status_path = os.path.join(ROOT, 'status.json')
+    # Каждый коммит запускает выкладку сайта (GitHub Pages, 4-6 минут), и новый коммит отменяет незаконченную.
+    # Поэтому без изменений в расписании время проверки сохраняем не чаще раза в 20 минут.
+    try:
+        prev = datetime.datetime.strptime(json.load(open(status_path))['checked'], '%Y-%m-%d %H:%M')
+        fresh = (now.replace(tzinfo=None) - prev) < datetime.timedelta(minutes=19)
+    except Exception:
+        fresh = False
+    if not (same and fresh):
+        json.dump({'checked': now.strftime('%Y-%m-%d %H:%M')}, open(status_path, 'w'))
+    if same:
+        print('без изменений' + (' (время проверки обновлю в следующий раз)' if fresh else ''))
         return
     now = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=3)
     json.dump({'updated': now.strftime('%Y-%m-%d %H:%M'), 'source': 'xlsx', 'groups': groups},
