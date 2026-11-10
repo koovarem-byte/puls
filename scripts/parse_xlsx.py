@@ -1,7 +1,11 @@
 """Разбор xlsx-таблицы колледжа (основной источник для автообновления)."""
 import re, datetime
 import openpyxl
-from lessons import build_day
+from lessons import build_day, NOTE, TIME
+
+
+def P_NOTE(v):
+    return bool(NOTE.match(v) or TIME.match(v))
 
 LABEL = re.compile(r'^\s*(\d{3})\s*([А-Яа-яA-Za-z]?)\s*$')
 DATE = re.compile(r'(\d{1,2})\.(\d{1,2})\.(\d{4})')
@@ -93,6 +97,16 @@ def parse_sheet(ws):
         block = grid[hr + 1:nxt]
         has_rv = any('разговор' in s(v).lower() for row in block[:2] for v in row)
         start = 3 if has_rv else 1
+        if has_rv and len(block) > 1:
+            # классный час иногда занимает одну строку: тогда 1 пара начинается со 2-й строки
+            row1 = [s(v).lower() for v in block[0]]
+            row2 = [s(v) for v in block[1]]
+            one_row = any(
+                row2[j] and 'разговор' not in row2[j].lower() and not row2[j].replace('.', '').isdigit()
+                and 'разговор' in row1[j] and not P_NOTE(row2[j])
+                for _, j in labs if j < len(row2))
+            if one_row:
+                start = 2
         for g, j in labs:
             fills = {}
             for k in range(1, len(block) + 1):

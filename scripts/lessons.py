@@ -219,8 +219,36 @@ def merge_subgroups(lessons):
     return out
 
 
+def realign_blocks(rows, fills, start, max_pairs=6):
+    """Цветной блок, начатый с нижней строки пары (составитель сдвинул его на строку вниз),
+    поднимаем на строку вверх, если строка над ним пустая и не закрашена."""
+    rows, fills = dict(rows), dict(fills)
+    end = start + 2 * max_pairs
+    o = start
+    while o < end:
+        c = fills.get(o)
+        if not c or fills.get(o - 1) == c:
+            o += 1
+            continue
+        run = 0
+        while fills.get(o + run) == c:
+            run += 1
+        if (o - start) % 2 == 1 and run % 2 == 0 and o - 1 >= start and not fills.get(o - 1) \
+                and not any(rows.get(o - 1, [''])) and any(any(rows.get(o + k, [''])) for k in range(run)):
+            for k in range(run):
+                v = rows.pop(o + k, None)
+                if v is not None:
+                    rows[o + k - 1] = v
+                fills[o + k - 1] = c
+            fills.pop(o + run - 1, None)
+        o += run
+    return rows, fills
+
+
 def build_day(rows, start, max_pairs=6, fills=None):
     """rows: {offset: [subject, teacher, room]} offsets from header row (header = 0)."""
+    if fills:
+        rows, fills = realign_blocks(rows, fills, start, max_pairs)
     lessons = []
     rv = any('разговор' in (rows.get(o, ['', '', ''])[0] or '').lower() for o in range(1, start))
     if rv:

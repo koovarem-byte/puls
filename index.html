@@ -114,6 +114,7 @@ button{font:inherit}
 .bl .br{color:var(--mut);font-size:12px;font-weight:700;text-align:right}
 .bl.now{border-color:rgba(61,220,151,.6)}
 .bl.now .k{background:var(--ok);color:#06231a;border-color:transparent}
+.bl .tm small{display:block;font-family:Manrope,sans-serif;font-size:11.5px;color:var(--mut);font-weight:700;margin-top:3px;letter-spacing:0}
 .gap{text-align:center;color:var(--dim);font-size:11.5px;font-weight:700;margin:-2px 0}
 .rest{margin-bottom:12px;padding:12px 14px;border-radius:16px;background:rgba(139,92,255,.12);border:1px solid var(--line2);font-weight:700;font-size:13.5px;color:#e4dcff}
 .app-hero{text-align:center;padding:26px 18px 22px;margin-bottom:14px}
@@ -460,6 +461,9 @@ const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
 const mondayOf=d=>{const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());return addD(x,-((x.getDay()+6)%7))};
 const toMin=s=>{const [h,m]=s.split(":").map(Number);return h*60+m};
 const span=l=>l.a===0?["08:00","08:30"]:[l.start||BELLS[l.a-1][1],BELLS[(l.b||l.a)-1][2]];
+const fmtM=x=>String(Math.floor(x/60)).padStart(2,"0")+":"+String(x%60).padStart(2,"0");
+// пара = 45 мин + пятиминутка + 45 мин
+function pairNow(m){for(const b of BELLS){const s=toMin(b[1]),e=toMin(b[2]);if(m>=s&&m<e)return {p:b[0],s,e,h1:s+45,h2:e-45}}return null}
 const plural=(n,a,b,c)=>{n=Math.abs(n)%100;const k=n%10;if(n>10&&n<20)return c;if(k>1&&k<5)return b;if(k===1)return a;return c};
 const cap=s=>s[0].toUpperCase()+s.slice(1);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -577,7 +581,12 @@ function renderToday(){
     document.getElementById("nextTime").textContent=live?b:a;
     document.getElementById("nextWhat").textContent=nl.s;
     const where=nl.r?` · ${/^\d/.test(nl.r)?"каб. ":""}${nl.r}`:"";
-    document.getElementById("nextHint").textContent=live?`до звонка ${toMin(b)-m} мин`:isToday?`через ${toMin(a)-m} мин${where}`:`${head.toLowerCase()}${where}`;
+    let liveHint=`до звонка ${toMin(b)-m} мин`;
+    const pn=live&&!nl.start&&nl.a>0?pairNow(m):null;
+    if(pn){ if(m<pn.h1) liveHint=`до пятиминутки ${pn.h1-m} мин`;
+      else if(m<pn.h2) liveHint=`☕ пятиминутка, ещё ${pn.h2-m} мин`;
+      else liveHint=(pn.p>=(nl.b||nl.a)?"до звонка ":"до перемены ")+`${pn.e-m} мин` }
+    document.getElementById("nextHint").textContent=live?liveHint:isToday?`через ${toMin(a)-m} мин${where}`:`${head.toLowerCase()}${where}`;
     dot.style.display=live?"inline-block":"none";
   } else {document.getElementById("nextLbl").textContent="Следующая пара";document.getElementById("nextTime").textContent="—";document.getElementById("nextWhat").textContent="Пока не видно";document.getElementById("nextHint").textContent="ждём новую неделю";dot.style.display="none"}
 
@@ -684,7 +693,9 @@ function renderBells(){
   document.getElementById("bellsRest").innerHTML=rest?`<div class="rest">${rest}</div>`:"";
   document.getElementById("bells").innerHTML=`<div class="bl"><div class="k">кл.</div><div class="tm">08:00 – 08:30</div><div class="br">классный час<br>по понедельникам</div></div><div class="gap">&nbsp;</div>`+
    BELLS.map((b,i)=>{const live=study&&m>=toMin(b[1])&&m<toMin(b[2]); const nx=BELLS[i+1], brk=nx?toMin(nx[1])-toMin(b[2]):null;
-    return `<div class="bl ${live?"now":""}"><div class="k">${b[0]}</div><div class="tm">${b[1]} – ${b[2]}</div><div class="br">${live?"идёт сейчас":"95 мин"}</div></div>`+(brk?`<div class="gap">перемена ${brk} мин${brk>=30?" 🍔":""}</div>`:"")}).join("");
+    const s0=toMin(b[1]),e0=toMin(b[2]),h1=s0+45,h2=e0-45;
+    const st=!live?"45 + 45 мин":m<h1?"1 половина":m<h2?"☕ пятиминутка":"2 половина";
+    return `<div class="bl ${live?"now":""}"><div class="k">${b[0]}</div><div class="tm">${b[1]} – ${b[2]}<small>☕ пятиминутка ${fmtM(h1)}–${fmtM(h2)}</small></div><div class="br">${st}</div></div>`+(brk?`<div class="gap">перемена ${brk} мин${brk>=30?" 🍔":""}</div>`:"")}).join("");
 }
 
 /* ===== Установка ===== */
