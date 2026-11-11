@@ -1,5 +1,5 @@
 // Пульс: всегда берём свежую версию из сети, кэш — только если нет интернета.
-const CACHE = 'puls-v21';
+const CACHE = 'puls-v22';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'data.json'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, {cache: 'reload'}))))); self.skipWaiting(); });
 self.addEventListener('activate', e => {

@@ -1,7 +1,7 @@
 """Превращает строки таблицы (по группе и дню) в список пар."""
 import re
 
-NOTE = re.compile(r'^(\d+\s*(пар[аы]?|ч\.?|час(а|ов)?)\b.*|[св]\s*\d{1,2}([.:]\d{2})?|\(?\d\s*пара\)?|\d\s*и\s*\d\s*пар[аы]?|\d{1,2}\.\d{1,2}\.\d{4}|[.,]+)$', re.I)
+NOTE = re.compile(r'^(\d+\s*(пар[аы]?|ч\.?|час(а|ов)?)\b.*|[св]\s*\d{1,2}([.:]\d{2})?|\(?\d\s*пара\)?|\d\s*[,и]\s*\d\s*пар[аы]?|\d{1,2}\.\d{1,2}\.\d{4}|[.,]+)$', re.I)
 NAME = re.compile(r'^[А-ЯЁ][а-яё]+(\s+[А-ЯЁ]\.\s*[А-ЯЁ]\.?|,)$')
 ROOMS = {
     'бол': 'больница', 'д.бол': 'детская больница', 'дет.б.': 'детская больница', 'дет.б': 'детская больница',
@@ -113,7 +113,8 @@ def merge_color_blocks(lessons, start, fills):
         if run >= 4:
             n = (run + 1) // 2
             last = min(6, L['a'] + n - 1)
-            inside = [j for j in range(i, len(lessons)) if L['a'] <= lessons[j]['a'] <= last and lessons[j]['a'] > 0]
+            inside = [j for j in range(i, len(lessons)) if L['a'] <= lessons[j]['a'] <= last and lessons[j]['a'] > 0
+                      and o <= lessons[j].get('_o', o) < o + run]  # только строки внутри цветного блока
             if all(lessons[j]['s'] == L['s'] for j in inside):
                 M = {'a': L['a'], 's': L['s']}
                 if last > L['a']:
@@ -131,6 +132,8 @@ def merge_color_blocks(lessons, start, fills):
                         M['r'] = x['r']
                     if x.get('last'):
                         M['last'] = 1
+                    if x.get('start') and not M.get('start'):
+                        M['start'] = x['start']
                     used.add(j)
                 if ts:
                     M['t'] = ', '.join(ts)
@@ -171,7 +174,9 @@ def merge_color_blocks(lessons, start, fills):
                         M['a'] = a0
                         if b0 > a0:
                             M['b'] = b0
-                        if b0 > a0:
+                        if PAIRNOTE.match((x.get('note') or '').strip()) or note_pairs(x.get('note')):
+                            M['note'] = x['note']  # «2 пара» / «6 ч.» под предметом важнее размера блока
+                        elif b0 > a0:
                             M['note'] = f'{run} ч.' if len(chunks) == 1 else f'{2 * (b0 - a0 + 1)} ч.'
                         out.append(M)
                 continue
@@ -219,6 +224,41 @@ def merge_subgroups(lessons):
     return out
 
 
+PAIRNOTE = re.compile(r'^(\d)(?:\s*[,и]\s*(\d))?\s*пара$', re.I)
+TAILPAIR = re.compile(r'^(.*\S)\s+(\d(?:\s*[,и]\s*\d)?\s*пара)$', re.I)
+BELL_MIN = [(1, 510, 605), (2, 615, 710), (3, 740, 835), (4, 845, 940), (5, 970, 1065), (6, 1075, 1170)]
+
+
+def pair_of_time(t):
+    """'16:15' -> 5 (пара, в которую попадает время, с запасом 10 минут до начала)."""
+    h, m = map(int, t.split(':'))
+    x = h * 60 + m
+    for n, a, b in BELL_MIN:
+        if a - 10 <= x < b:
+            return n
+    return None
+
+
+def apply_pair_notes(lessons):
+    """Пометка «2 пара» / «1, 2 пара» под предметом = явный номер пары."""
+    for L in lessons:
+        m = PAIRNOTE.match((L.get('note') or '').strip())
+        if not m or not L.get('a'):
+            continue
+        a = int(m.group(1))
+        b = int(m.group(2)) if m.group(2) else None
+        if not 1 <= a <= 6:
+            continue
+        L['a'] = a
+        if b and b > a:
+            L['b'] = min(6, b)
+        else:
+            L.pop('b', None)
+        L.pop('note', None)
+    lessons.sort(key=lambda L: (L['a'], L.get('g') or ''))
+    return lessons
+
+
 def realign_blocks(rows, fills, start, max_pairs=6):
     """Цветной блок, начатый с нижней строки пары (составитель сдвинул его на строку вниз),
     поднимаем на строку вверх, если строка над ним пустая и не закрашена."""
@@ -254,12 +294,27 @@ def build_day(rows, start, max_pairs=6, fills=None):
     if rv:
         lessons.append({'a': 0, 's': 'Разговоры о важном'})
     last = None
+    pending = None
     for p in range(1, max_pairs + 1):
         halves = {}
         for half in (0, 1):
             o = start + 2 * (p - 1) + half
             subj, tch, room = [clean(x) for x in (rows.get(o) or ['', '', ''])]
             if not (subj or tch or room):
+                continue
+            nxt = clean((rows.get(o + 1) or [''])[0])
+            same_block = (fills or {}).get(o) == (fills or {}).get(o + 1)
+            if subj and TIME.match(subj) and not tch and not room and nxt and same_block \
+                    and not NOTE.match(nxt) and not TIME.match(nxt) and nxt.lower() not in ('нет', '-', '—'):
+                pending = subj.replace('.', ':').zfill(5)  # «16.15» над предметом = начало
+                continue
+            if (subj and half == 1 and not tch and not room and subj[0].islower() and last is not None
+                    and last['a'] == p and not NOTE.match(subj) and len(subj.strip('. ')) >= 4
+                    and subj.lower().strip('. ') not in ('нет', 'дист', 'дистант')):
+                m = TAILPAIR.match(subj)  # «фельдшера 5 пара» = продолжение названия
+                last['s'] = last['s'] + ' ' + (m.group(1) if m else subj)
+                if m:
+                    last['note'] = m.group(2)
                 continue
             if subj and (NOTE.match(subj) or TIME.match(subj)):
                 if last is not None:
@@ -287,6 +342,22 @@ def build_day(rows, start, max_pairs=6, fills=None):
                 rr = room_label(r or info.get('r', ''))
                 if rr:
                     L['r'] = rr
+                L['_o'] = o
+                if pending:
+                    L['start'] = pending
+                    tp = pair_of_time(pending)
+                    c = (fills or {}).get(o)
+                    if tp:
+                        run, k = 0, o
+                        while c and fills.get(k - 1) == c:
+                            k -= 1
+                        while c and fills.get(k + run) == c:
+                            run += 1
+                        L['a'] = tp
+                        n = max((run + 1) // 2, 1) if c else 1
+                        if n > 1:
+                            L['b'] = min(6, tp + n - 1)
+                    pending = None
                 lessons.append(L)
                 last = L
                 if tt or rr:
@@ -308,6 +379,9 @@ def build_day(rows, start, max_pairs=6, fills=None):
     if fills:
         lessons = merge_color_blocks(lessons, start, fills)
     lessons = merge_subgroups(lessons)
+    lessons = apply_pair_notes(lessons)
+    for L in lessons:
+        L.pop('_o', None)
     for L in lessons:
         if L['s'].upper() == 'ЗОЖ':
             L['r'] = 'центр здоровья'

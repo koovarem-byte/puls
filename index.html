@@ -581,7 +581,7 @@ function renderToday(){
     document.getElementById("nextTime").textContent=live?b:a;
     document.getElementById("nextWhat").textContent=nl.s;
     const where=nl.r?` · ${/^\d/.test(nl.r)?"каб. ":""}${nl.r}`:"";
-    let liveHint=`до звонка ${toMin(b)-m} мин`;
+    let liveHint=(nl.b&&nl.b>nl.a?"до конца ":"до звонка ")+`${toMin(b)-m} мин`;
     const pn=live&&!nl.start&&nl.a>0?pairNow(m):null;
     if(pn){ if(m<pn.h1) liveHint=`до пятиминутки ${pn.h1-m} мин`;
       else if(m<pn.h2) liveHint=`☕ пятиминутка, ещё ${pn.h2-m} мин`;
