@@ -1,5 +1,6 @@
 """Превращает строки таблицы (по группе и дню) в список пар."""
 import re
+import collections
 
 NOTE = re.compile(r'^(\d+\s*(пар[аы]?|ч\.?|час(а|ов)?)\b.*|[св]\s*\d{1,2}([.:]\d{2})?|\(?\d\s*пара\)?|\d\s*[,и]\s*\d\s*пар[аы]?|\d{1,2}\.\d{1,2}\.\d{4}|[.,]+)$', re.I)
 NAME = re.compile(r'^[А-ЯЁ][а-яё]+(\s+[А-ЯЁ]\.\s*[А-ЯЁ]\.?|,)$')
@@ -92,7 +93,7 @@ def parse_subject(s):
     return out
 
 
-def merge_color_blocks(lessons, start, fills):
+def merge_color_blocks(lessons, start, fills, nets=frozenset()):
     """Практика/занятие одним цветным блоком: 4 строки = 4 ч (2 пары), 6 строк = 6 ч (3 пары).
     Если внутри блока один и тот же предмет — показываем одним блоком на все его пары."""
     out = []
@@ -142,6 +143,32 @@ def merge_color_blocks(lessons, start, fills):
                 M['note'] = f'{run} ч.'
                 out.append(M)
                 continue
+            halves_style = any(
+                lessons[x].get('_h') == 0 and lessons[x].get('g') == '1' and
+                any(lessons[y]['a'] == lessons[x]['a'] and lessons[y].get('_h') == 1 and lessons[y].get('g') == '2'
+                    for y in inside)
+                for x in inside)
+            if all(lessons[j].get('g') in ('1', '2') for j in inside) and halves_style:
+                # подгруппы «по половинкам пары» (сверху 1 подгр., снизу 2): каждая на своём месте,
+                # тянется до следующей пары своей подгруппы или до конца цветного блока
+                res = []
+                for k, j in enumerate(inside):
+                    x = dict(lessons[j])
+                    used.add(j)
+                    nxt_same = [lessons[y]['a'] for y in inside[k + 1:] if lessons[y].get('g') == x['g'] and lessons[y]['a'] > x['a']]
+                    nxt_same += [q for (q, gg) in nets if gg == x['g'] and x['a'] < q <= last]  # «нет» у подгруппы
+                    end = (min(nxt_same) - 1) if nxt_same else last
+                    x.pop('b', None)
+                    if end > x['a']:
+                        x['b'] = end
+                    # подряд одинаковые пары одной подгруппы склеиваем
+                    prev = next((r for r in reversed(res) if r.get('g') == x['g']), None)
+                    if prev and prev['s'] == x['s'] and prev.get('t') == x.get('t') and (prev.get('b') or prev['a']) + 1 == x['a']:
+                        prev['b'] = x.get('b') or x['a']
+                        continue
+                    res.append(x)
+                out.extend(res)
+                continue
             if all(lessons[j].get('g') in ('1', '2') for j in inside):
                 # «1- ПМ06» и «2- ПМ05» друг под другом в одном цветном блоке = подгруппы занимаются
                 # одновременно, каждая весь блок (а не 1 подгр. на 3 паре, 2 подгр. на 4-й)
@@ -150,9 +177,9 @@ def merge_color_blocks(lessons, start, fills):
                 for j in inside:
                     x = lessons[j]
                     used.add(j)
-                    if prev.get(x['g']) == x['s']:
+                    if prev.get(x['g']) == (x['s'], x.get('t')):
                         continue
-                    prev[x['g']] = x['s']
+                    prev[x['g']] = (x['s'], x.get('t'))
                     ent.append(x)
                 # куски «1-…, 2-…»: новый кусок, когда подгруппа повторяется (1-Реаб, 2-Тер, 1-Тер, 2-Реаб = смена)
                 chunks, cur = [], []
@@ -295,6 +322,7 @@ def build_day(rows, start, max_pairs=6, fills=None):
         lessons.append({'a': 0, 's': 'Разговоры о важном'})
     last = None
     pending = None
+    nets = set()
     for p in range(1, max_pairs + 1):
         halves = {}
         for half in (0, 1):
@@ -322,6 +350,7 @@ def build_day(rows, start, max_pairs=6, fills=None):
                 continue
             if subj.lower() in ('нет', '-', '—'):
                 halves[half] = 'нет'
+                nets.add((p, '1' if half == 0 else '2'))
                 continue
             if NAME.match(subj):
                 continue
@@ -343,6 +372,7 @@ def build_day(rows, start, max_pairs=6, fills=None):
                 if rr:
                     L['r'] = rr
                 L['_o'] = o
+                L['_h'] = half
                 if pending:
                     L['start'] = pending
                     tp = pair_of_time(pending)
@@ -377,11 +407,12 @@ def build_day(rows, start, max_pairs=6, fills=None):
                 if isinstance(h1, dict):
                     h1['g'] = '2'
     if fills:
-        lessons = merge_color_blocks(lessons, start, fills)
+        lessons = merge_color_blocks(lessons, start, fills, nets)
     lessons = merge_subgroups(lessons)
     lessons = apply_pair_notes(lessons)
     for L in lessons:
         L.pop('_o', None)
+        L.pop('_h', None)
     for L in lessons:
         if L['s'].upper() == 'ЗОЖ':
             L['r'] = 'центр здоровья'
