@@ -2,7 +2,7 @@
 Запускается роботом GitHub Actions по расписанию."""
 import json, sys, os, datetime, urllib.request
 sys.path.insert(0, os.path.dirname(__file__))
-from parse_xlsx import parse
+from parse_xlsx import parse, WARN
 import difflib, collections
 
 FILE_ID = '15gLO2V6V3jxHgYROBl3S_fxmZk7YYMOV'
@@ -90,8 +90,16 @@ def main():
         fresh = (now.replace(tzinfo=None) - prev) < datetime.timedelta(minutes=19)
     except Exception:
         fresh = False
-    if not (same and fresh):
-        json.dump({'checked': now.strftime('%Y-%m-%d %H:%M')}, open(status_path, 'w'))
+    st = {'checked': now.strftime('%Y-%m-%d %H:%M')}
+    if WARN:
+        st['warn'] = WARN[:5]
+        print('ВНИМАНИЕ:', *WARN, sep='\n  ')
+    try:
+        had_warn = 'warn' in json.load(open(status_path))
+    except Exception:
+        had_warn = False
+    if not (same and fresh) or bool(WARN) != had_warn:
+        json.dump(st, open(status_path, 'w'), ensure_ascii=False)
     if same:
         print('без изменений' + (' (время проверки обновлю в следующий раз)' if fresh else ''))
         return

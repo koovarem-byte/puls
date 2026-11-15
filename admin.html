@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self'; connect-src https://ep-still-mode-b90ygqum.apirest.c-7.eu-central-1.aws.neon.tech; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self'; connect-src 'self' https://ep-still-mode-b90ygqum.apirest.c-7.eu-central-1.aws.neon.tech; base-uri 'none'; form-action 'none'">
 <meta name="theme-color" content="#07051a">
 <title>Пульс · вопросы</title>
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
@@ -45,6 +45,7 @@ button.ghost{background:rgba(255,255,255,.07);border:1px solid rgba(160,140,255,
   <div id="loginErr" class="err"></div>
 </div>
 
+<div id="warn" class="err" style="display:none"></div>
 <div id="app" style="display:none">
   <div class="tabs"><button class="on" data-f="new">Без ответа <span id="cNew"></span></button><button data-f="done">Отвеченные</button><button class="ghost" id="refresh">↻</button><button class="ghost" id="logout">Выйти</button></div>
   <div id="list"></div>
@@ -85,6 +86,10 @@ document.getElementById("key").onkeydown=e=>{if(e.key==="Enter")document.getElem
 document.getElementById("refresh").onclick=load;
 document.getElementById("logout").onclick=()=>{try{localStorage.removeItem("puls_admin")}catch(e){};KEY="";location.reload()};
 document.querySelectorAll(".tabs [data-f]").forEach(b=>b.onclick=()=>{F=b.dataset.f;document.querySelectorAll(".tabs [data-f]").forEach(x=>x.classList.toggle("on",x===b));render()});
+fetch("status.json?"+Date.now()).then(r=>r.json()).then(st=>{const w=document.getElementById("warn");
+  const age=(Date.now()-new Date(st.checked.replace(" ","T")+":00+03:00"))/6e4;
+  const msgs=[...(st.warn||[])]; if(age>60) msgs.unshift(`робот не проверял таблицу ${Math.round(age)} мин`);
+  if(msgs.length){w.style.display="block";w.textContent="⚠️ Пульс: "+msgs.join("; ")+". Напиши Claude"}}).catch(()=>{});
 if(KEY) load();
 setInterval(()=>{if(KEY&&document.visibilityState==="visible")load()},60000);
 </script>

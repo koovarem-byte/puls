@@ -21,13 +21,38 @@ def s(v):
     return str(v).strip()
 
 
-def as_date(v):
+MONTHS = ['январ', 'феврал', 'март', 'апрел', 'ма', 'июн', 'июл', 'август', 'сентябр', 'октябр', 'ноябр', 'декабр']
+WORD_DATE = re.compile(r'(\d{1,2})\s+(январ|феврал|март|апрел|ма[яй]|июн|июл|август|сентябр|октябр|ноябр|декабр)[а-я]*(?:\s+(\d{4}))?', re.I)
+SHORT_DATE = re.compile(r'^(\d{1,2})\.(\d{1,2})\.?$')
+
+
+def as_date(v, year=None):
+    """Дата из ячейки: datetime, «17.11.2026», «Среда 18 ноября» (год берём из соседних дат), «18.11»."""
     if isinstance(v, (datetime.datetime, datetime.date)):
         return v.strftime('%Y-%m-%d')
-    m = DATE.search(s(v))
+    t = s(v)
+    m = DATE.search(t)
     if m:
         return f'{m.group(3)}-{int(m.group(2)):02d}-{int(m.group(1)):02d}'
+    m = WORD_DATE.search(t)
+    if m:
+        mon = next(i for i, x in enumerate(MONTHS, 1) if m.group(2).lower().startswith(x))
+        y = int(m.group(3)) if m.group(3) else guess_year(mon, year)
+        return f'{y}-{mon:02d}-{int(m.group(1)):02d}'
+    m = SHORT_DATE.match(t.strip())
+    if m and 1 <= int(m.group(2)) <= 12 and 1 <= int(m.group(1)) <= 31:
+        mon = int(m.group(2))
+        return f'{guess_year(mon, year)}-{mon:02d}-{int(m.group(1)):02d}'
     return None
+
+
+def guess_year(mon, year=None):
+    """Год для даты без года: учебный год идёт с сентября по июль."""
+    if year:
+        return year
+    today = datetime.date.today()
+    start = today.year if today.month >= 8 else today.year - 1
+    return start if mon >= 8 else start + 1
 
 
 def norm_group(a, b):
@@ -36,6 +61,7 @@ def norm_group(a, b):
     return a + b
 
 
+WARN = []  # что разобрать не удалось — показывается в админке
 _fill_cache = {}
 
 
@@ -79,13 +105,18 @@ def parse_sheet(ws):
             merged[(m.min_row - 1, m.min_col - 1)] = (m.min_row - 1 + m.max_row - 1) / 2
     hrows = [h for h, _ in headers]
     dates_by_header = {}
+    last_year = None
     for i, row in enumerate(grid):
         for c in range(0, min(3, ncols)):
-            d = as_date(row[c])
+            v = row[c]
+            # дата словами («Среда 18 ноября») — только в первом столбце, чтобы не спутать с предметом
+            d = as_date(v, last_year) if c == 0 else (as_date(v) if DATE.search(s(v)) or isinstance(v, (datetime.datetime, datetime.date)) else None)
             if not d:
                 continue
+            last_year = int(d[:4])
             center = merged.get((i, c), i)
-            hs = [h for h in hrows if h <= center + 0.5]
+            # дата может стоять в строке с группами, внутри дня (объединённая ячейка) или строкой выше
+            hs = [h for h in hrows if h <= center + 1.5]
             if hs and hs[-1] not in dates_by_header:
                 dates_by_header[hs[-1]] = d
     days = {}
@@ -93,6 +124,7 @@ def parse_sheet(ws):
         nxt = headers[hi + 1][0] if hi + 1 < len(headers) else min(len(grid), hr + 16)
         date = dates_by_header.get(hr)
         if not date:
+            WARN.append(f'не понял дату дня в строке {hr + 1} таблицы')
             continue
         block = grid[hr + 1:nxt]
         has_rv = any('разговор' in s(v).lower() for row in block[:2] for v in row)

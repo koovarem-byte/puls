@@ -17,4 +17,15 @@ for key, want in exp.items():
         bad += 1
         print('ОШИБКА', key, '\n  ждали ', want, '\n  вышло ', have)
 print(f'проверено {len(exp)}, ошибок {bad}')
-sys.exit(1 if bad else 0)
+if bad:
+    sys.exit(1)
+
+# формат дат «Среда\n18 ноября» и дата строкой выше групп (с 15.11): все дни недели на месте
+import parse_xlsx
+parse_xlsx.WARN.clear()
+got2 = parse(os.path.join(HERE, 'fixture_2026-11-15.xlsx'))
+miss = [d for d in ['2026-11-16', '2026-11-17', '2026-11-18', '2026-11-19', '2026-11-20', '2026-11-21']
+        if sum(d in v for v in got2.values()) != 23]
+print('даты 16–21.11:', 'ок' if not miss else f'ОШИБКА, нет {miss}', '| предупреждений:', len(parse_xlsx.WARN))
+if miss or parse_xlsx.WARN:
+    sys.exit(1)
