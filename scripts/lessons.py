@@ -2,7 +2,7 @@
 import re
 import collections
 
-NOTE = re.compile(r'^(\d+\s*(пар[аы]?|ч\.?|час(а|ов)?)\b.*|[св]\s*\d{1,2}([.:]\d{2})?|\(?\d\s*пара\)?|\d\s*[,и]\s*\d\s*пар[аы]?|\d{1,2}\.\d{1,2}\.\d{4}|[.,]+)$', re.I)
+NOTE = re.compile(r'^(\d+\s*(пар[аы]?|ч\.?|час(а|ов)?)\b.*|[св]\s*\d{1,2}([.:]\d{2})?|\(?\d\s*пара\)?|\d\s*[,и]\s*\d\s*пар[аы]?|\d{1,2}\.\d{1,2}\.\d{4}|д\.?|\d\s*смена|[.,]+)$', re.I)
 NAME = re.compile(r'^[А-ЯЁ][а-яё]+(\s+[А-ЯЁ]\.\s*[А-ЯЁ]\.?|,)$')
 ROOMS = {
     'бол': 'больница', 'д.бол': 'детская больница', 'дет.б.': 'детская больница', 'дет.б': 'детская больница',
@@ -141,6 +141,9 @@ def merge_color_blocks(lessons, start, fills, nets=frozenset()):
                 if one_g:
                     M['g'] = L['g']
                 M['note'] = f'{run} ч.'
+                tn = [lessons[j].get('note') for j in inside if re.match(r'^[ск] \d', lessons[j].get('note') or '')]
+                if tn:
+                    M['note'] = tn[0] + ' · ' + M['note']  # «с 14:30» не теряем при объединении
                 out.append(M)
                 continue
             halves_style = any(
@@ -256,6 +259,18 @@ TAILPAIR = re.compile(r'^(.*\S)\s+(\d(?:\s*[,и]\s*\d)?\s*пара)$', re.I)
 BELL_MIN = [(1, 510, 605), (2, 615, 710), (3, 740, 835), (4, 845, 940), (5, 970, 1065), (6, 1075, 1170)]
 
 
+TAILTIME = re.compile(r'^(.*\S)\s+[скСК]\s*(\d{1,2})[.:](\d{2})$')
+GROUPLIKE = re.compile(r'^\d{3}\s*[А-ЯA-Z]?$')
+
+
+def decap(s):
+    """«ЭКЗАМЕН по АНАТОМИИ» -> «Экзамен по анатомии» (аббревиатуры вроде ПМ04, БЖ, ЗОЖ не трогаем)."""
+    words = s.split(' ')
+    out = [w.lower() if (len(w) >= 5 and w.isupper() and not any(ch.isdigit() for ch in w)) else w for w in words]
+    r = ' '.join(out)
+    return r[:1].upper() + r[1:] if r else r
+
+
 def pair_of_time(t):
     """'16:15' -> 5 (пара, в которую попадает время, с запасом 10 минут до начала)."""
     h, m = map(int, t.split(':'))
@@ -322,6 +337,7 @@ def build_day(rows, start, max_pairs=6, fills=None):
         lessons.append({'a': 0, 's': 'Разговоры о важном'})
     last = None
     pending = None
+    join = None
     nets = set()
     for p in range(1, max_pairs + 1):
         halves = {}
@@ -348,6 +364,32 @@ def build_day(rows, start, max_pairs=6, fills=None):
                 if last is not None:
                     last['note'] = ('в ' + subj.replace('.', ':')) if TIME.match(subj) else subj
                 continue
+            if subj.lower() in ('по', 'и') and last is not None:
+                join = subj.lower()  # «ЭКЗАМЕН / по / АНАТОМИИ» — название на нескольких строках
+                t3, r3 = split_teacher(tch)
+                if t3 and not last.get('t'):
+                    last['t'] = t3
+                if (room or r3) and not last.get('r'):
+                    last['r'] = room_label(room or r3)
+                continue
+            if join and subj and last is not None and not NOTE.match(subj) and not TIME.match(subj):
+                last['s'] = last['s'] + ' ' + join + ' ' + subj.rstrip('+')
+                if subj.endswith('+'):
+                    last['last'] = 1
+                t2, r2b = split_teacher(tch)
+                if t2 and not last.get('t'):
+                    last['t'] = t2
+                if (room or r2b) and not last.get('r'):
+                    last['r'] = room_label(room or r2b)
+                join = None
+                continue
+            join = None
+            if re.fullmatch(r'\d{1,3}', subj) and not tch:
+                if last is not None and last['a'] == p and not last.get('r') and not room:
+                    last['r'] = room_label(subj)  # номер кабинета попал в столбец предмета
+                continue
+            if GROUPLIKE.match(subj):
+                continue
             if subj.lower() in ('нет', '-', '—'):
                 halves[half] = 'нет'
                 nets.add((p, '1' if half == 0 else '2'))
@@ -360,7 +402,17 @@ def build_day(rows, start, max_pairs=6, fills=None):
                 info = parse_subject(subj)
                 if not info['s']:
                     continue  # '1-' без предмета
-                L = {'a': p, 's': info['s']}
+                mt = TAILTIME.match(info['s'])
+                tnote = None
+                if mt:  # «ПМ04 с 14.30» — время пометкой, пару не двигаем
+                    info['s'] = mt.group(1)
+                    tnote = f"{mt.group(0)[len(mt.group(1)):].strip()[0].lower()} {int(mt.group(2))}:{mt.group(3)}"
+                mp = TAILPAIR.match(info['s'])
+                L = {'a': p, 's': mp.group(1) if mp else info['s']}
+                if mp and not info.get('note'):
+                    L['note'] = mp.group(2)
+                if tnote:
+                    L['note'] = tnote
                 if info.get('g'):
                     L['g'] = info['g']
                 if info.get('last'):
@@ -410,6 +462,16 @@ def build_day(rows, start, max_pairs=6, fills=None):
         lessons = merge_color_blocks(lessons, start, fills, nets)
     lessons = merge_subgroups(lessons)
     lessons = apply_pair_notes(lessons)
+    for L in lessons:
+        L['s'] = decap(re.sub(r'(?<=\w);(?=\w)', '', L['s']))
+        st = L.get('start')
+        if st and L['a'] > 0 and st != '09:00':
+            tp = pair_of_time(st)
+            if tp and tp > L['a']:  # «ПМ04 с 14.30» стоит в 3 паре, но начинается в 4-й
+                d = tp - L['a']
+                L['a'] = tp
+                if L.get('b'):
+                    L['b'] = min(6, L['b'] + d)
     for L in lessons:
         L.pop('_o', None)
         L.pop('_h', None)

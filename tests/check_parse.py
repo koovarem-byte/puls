@@ -29,3 +29,17 @@ miss = [d for d in ['2026-11-16', '2026-11-17', '2026-11-18', '2026-11-19', '202
 print('даты 16–21.11:', 'ок' if not miss else f'ОШИБКА, нет {miss}', '| предупреждений:', len(parse_xlsx.WARN))
 if miss or parse_xlsx.WARN:
     sys.exit(1)
+
+# названия: склейка «ЭКЗАМЕН / по / АНАТОМИИ», капс, «ПМ0;4», время в названии
+def names(got, g, d):
+    return [(l['a'], l['s'], l.get('note')) for l in got.get(g, {}).get(d, [])]
+checks = [
+    (got, '211', '2026-11-06', lambda x: x[0][1] == 'Экзамен по анатомии'),
+    (got, '305В', '2026-10-22', lambda x: x[0][1] == 'Зачет по хирургии'),
+    (got, '205А', '2026-10-21', lambda x: all(';' not in s for _, s, _ in x)),
+    (got2, '205А', '2026-11-18', lambda x: x[-1][1] == 'ПМ04' and (x[-1][2] or '').startswith('с 14:30')),
+]
+nbad = sum(1 for G, g, d, ok in checks if not ok(names(G, g, d)) and not print('ОШИБКА названия', g, d, names(G, g, d)))
+print('названия:', 'ок' if not nbad else f'ошибок {nbad}')
+if nbad:
+    sys.exit(1)
