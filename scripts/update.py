@@ -72,6 +72,21 @@ def main():
     for g, days in new.items():
         groups.setdefault(g, {}).update(days)
     fix_typos(groups)
+    # предохранитель: запись, которая может сломать сайт, не пропускаем
+    import re as _re
+    for g, days in groups.items():
+        for d, v in list(days.items()):
+            ok = []
+            for l in v if isinstance(v, list) else []:
+                a, b = l.get('a'), l.get('b')
+                good = (isinstance(a, int) and 0 <= a <= 6 and isinstance(l.get('s'), str) and l['s'].strip()
+                        and (b is None or (isinstance(b, int) and a < b <= 6))
+                        and (not l.get('start') or _re.fullmatch(r'\d\d:\d\d', str(l['start']))))
+                if good:
+                    ok.append(l)
+                else:
+                    WARN.append(f'пропустил кривую запись {g} {d}: {str(l)[:60]}')
+            days[d] = ok
     # защита: если новая таблица разобралась подозрительно плохо (колледж поменял вёрстку), ничего не портим
     old_n = new_n = 0
     for g, days in new.items():
