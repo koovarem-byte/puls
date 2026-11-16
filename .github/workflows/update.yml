@@ -34,4 +34,6 @@ jobs:
             sleep $((i * 15))
             git pull --rebase -X theirs || true
           done
-          exit 1
+          # GitHub недоступен несколько минут (бывает ночью): не страшно, следующий запуск через 10 минут сохранит
+          echo "::warning::GitHub не принял коммит, сохраню в следующий раз"
+          exit 0

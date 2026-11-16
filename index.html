@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#07051a">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://mc.yandex.ru https://*.yandex.ru https://yastatic.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.yandex.ru https://*.yandex.com https://*.yandex.by https://*.yandex.kz; connect-src 'self' https://ep-still-mode-b90ygqum.apirest.c-7.eu-central-1.aws.neon.tech https://*.yandex.ru https://*.yandex.com https://*.yandex.by https://*.yandex.kz wss://*.yandex.ru; frame-src https://*.yandex.ru https://*.yandex.com; base-uri 'self'; form-action 'none'; object-src 'none'">
 <meta name="description" content="Расписание Псковского медколледжа: пары своей группы в один тап">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -771,7 +773,12 @@ if(AD_LINK){const a=document.getElementById("adLink");a.href=AD_LINK;a.style.dis
 function setupHelp(){ if(!window.PULS_DATA) checkNewAnswers(); if(!HELP_BOT) return; const tr={"А":"A","Б":"B","В":"V"};
   const g=(group||"").replace(/[АБВ]/g,c=>tr[c]); const url=`https://t.me/${HELP_BOT}`+(g?`?start=g${g}`:"");
   document.getElementById("helpLink").href=url; document.getElementById("helpCard").style.display="flex" }
-function trackGroup(){ if(group) ym_("params",{group:group,mode:(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)?"app":"browser"}) }
+function trackGroup(){ if(!group) return; const app=!!(window.matchMedia&&matchMedia("(display-mode: standalone)").matches);
+  ym_("params",{group:group,mode:app?"app":"browser"});
+  // свой анонимный счётчик: случайный номер устройства + группа, раз за загрузку на группу
+  if(trackGroup.last===group) return; trackGroup.last=group;
+  let dev=""; try{dev=localStorage.getItem("dev")||""; if(!dev){dev=(crypto.randomUUID?crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)));localStorage.setItem("dev",dev)}}catch(e){}
+  if(dev&&location.protocol==="https:") rpc("hit",{p_dev:dev,p_grp:group+(sub?"/"+sub:""),p_app:app}).catch(()=>{}) }
 function renderAll(){trackGroup();ROOMS=null;renderRooms();setupHelp();
   document.getElementById("groupName").textContent=group?(group+(sub?` · ${sub} пг`:"")):"Группа";
   renderToday();renderWeek();renderBells();
