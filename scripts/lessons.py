@@ -323,6 +323,15 @@ def realign_blocks(rows, fills, start, max_pairs=6):
                     rows[o + k - 1] = v
                 fills[o + k - 1] = c
             fills.pop(o + run - 1, None)
+        elif (o - start) % 2 == 1 and run >= 2 and any(rows.get(o - 1, [''])) and fills.get(o - 1) != c \
+                and not any(rows.get(o + run, [''])) and not fills.get(o + run):
+            # блок начат во 2-й половине пары, а над ним другая пара (физра над ПМ04): сдвигаем блок вниз
+            for k in range(run - 1, -1, -1):
+                v = rows.pop(o + k, None)
+                if v is not None:
+                    rows[o + k + 1] = v
+                fills[o + k + 1] = c
+            fills.pop(o, None)
         o += run
     return rows, fills
 
@@ -452,7 +461,9 @@ def build_day(rows, start, max_pairs=6, fills=None):
                     last['r'] = room_label(r)
         # пара из двух строк без «1-/2-»: верхняя = 1 подгруппа, нижняя = 2 («нет» = у подгруппы пары нет)
         h0, h1 = halves.get(0), halves.get(1)
-        if h0 and h1 and (isinstance(h0, dict) or isinstance(h1, dict)):
+        o0 = start + 2 * (p - 1)
+        same_fill = (fills or {}).get(o0) == (fills or {}).get(o0 + 1)  # обе строки в одном блоке
+        if h0 and h1 and same_fill and (isinstance(h0, dict) or isinstance(h1, dict)):
             if not any(isinstance(h, dict) and h.get('g') for h in (h0, h1)):
                 if isinstance(h0, dict):
                     h0['g'] = '1'

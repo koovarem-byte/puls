@@ -37,6 +37,7 @@ checks = [
     (got, '211', '2026-11-06', lambda x: x[0][1] == 'Экзамен по анатомии'),
     (got, '305В', '2026-10-22', lambda x: x[0][1] == 'Зачет по хирургии'),
     (got, '205А', '2026-10-21', lambda x: all(';' not in s for _, s, _ in x)),
+    (got2, '205В', '2026-11-17', lambda x: any(s == 'Физкультура' for _, s, _ in x) and all(l.get('g') is None for l in got2['205В']['2026-11-17'] if l['s'] == 'Физкультура')),
     (got2, '205А', '2026-11-18', lambda x: x[-1][1] == 'ПМ04' and (x[-1][2] or '').startswith('с 14:30')),
 ]
 nbad = sum(1 for G, g, d, ok in checks if not ok(names(G, g, d)) and not print('ОШИБКА названия', g, d, names(G, g, d)))
